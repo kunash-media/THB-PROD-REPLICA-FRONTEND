@@ -1,0 +1,1105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login / Signup</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+     
+  <!-- Optional: Favicon Logo for Browser Tab -->
+  <link rel="icon" type="image/png" href="/IMG/LOGO_1-removebg-preview.png">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  
+  <!-- Toastify CSS -->
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #5a0a0a;
+    }
+    .video-bg {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-top-right-radius: 1rem;
+      border-bottom-right-radius: 1rem;
+    }
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      border-top-right-radius: 1rem;
+      border-bottom-right-radius: 1rem;
+    }
+    .password-wrapper {
+      position: relative;
+    }
+    .toggle-password {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: #888;
+    }
+    
+    /* Password validation styles */
+    .password-match {
+      border-color: #10b981 !important;
+    }
+    .password-mismatch {
+      border-color: #ef4444 !important;
+    }
+    .validation-message {
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+      display: block;
+    }
+    .validation-success {
+      color: #10b981;
+    }
+    .validation-error {
+      color: #ef4444;
+    }
+
+    /* Modal styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+    .modal-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+    .modal-content {
+      background: white;
+      padding: 2rem;
+      border-radius: 1rem;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      transform: scale(0.95);
+      transition: transform 0.3s ease;
+    }
+    .modal-overlay.show .modal-content {
+      transform: scale(1);
+    }
+
+    /* Step indicator styles */
+    .step-indicator {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 2rem;
+    }
+    
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+    
+    .step-number {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #e5e7eb;
+      color: #6b7280;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+    
+    .step.active .step-number {
+      background: #660B05;
+      color: white;
+    }
+    
+    .step.completed .step-number {
+      background: #10b981;
+      color: white;
+    }
+    
+    .step-line {
+      position: absolute;
+      top: 15px;
+      left: 50%;
+      width: 100%;
+      height: 2px;
+      background: #e5e7eb;
+      z-index: -1;
+    }
+    
+    .step:last-child .step-line {
+      display: none;
+    }
+    
+    .step.active .step-line {
+      background: #660B05;
+    }
+    
+    .step.completed .step-line {
+      background: #10b981;
+    }
+    
+    .step-text {
+      font-size: 0.75rem;
+      color: #6b7280;
+    }
+    
+    .step.active .step-text {
+      color: #660B05;
+      font-weight: 600;
+    }
+    
+    .step.completed .step-text {
+      color: #10b981;
+    }
+    
+    /* OTP input styling */
+    .otp-input {
+      letter-spacing: 8px;
+      font-size: 1.2rem;
+      text-align: center;
+      font-weight: bold;
+    }
+    
+    /* Toastify custom styles */
+    .toastify {
+      background: linear-gradient(to right, #660B05, #4E1F00);
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      padding: 12px 20px;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .toastify-success {
+      background: linear-gradient(to right, #10b981, #059669);
+    }
+
+    .toastify-error {
+      background: linear-gradient(to right, #ef4444, #dc2626);
+    }
+    
+    .resend-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* Mobile specific styles */
+    @media (max-width: 768px) {
+      .video-bg {
+        border-radius: 0;
+        border-top-left-radius: 1rem;
+        border-top-right-radius: 1rem;
+      }
+      .overlay {
+        border-radius: 0;
+        border-top-left-radius: 1rem;
+        border-top-right-radius: 1rem;
+      }
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+  <!-- Back Arrow Button -->
+  <button onclick="history.back()" class="fixed top-4 left-4 z-50 bg-[#660B05] border-2 border-white rounded-full p-2 md:p-3 shadow-md hover:shadow-lg transition transform hover:-translate-x-0.5">
+    <i class="fas fa-arrow-left text-white text-lg md:text-xl"></i>
+  </button>
+
+  <!-- Main Card -->
+  <div class="bg-white rounded-2xl shadow-2xl flex flex-col md:flex-row w-full max-w-[1000px] h-auto md:h-[560px] overflow-hidden">
+
+    <!-- Left Section (Login / Signup Forms) -->
+    <div class="w-full md:w-1/2 flex flex-col justify-center px-6 md:px-10 py-8 md:py-0 order-2 md:order-1">
+
+      <!-- Login Form -->
+      <div id="loginSection">
+        <h2 class="text-2xl md:text-3xl font-bold text-[#660B05] mb-2 uppercase">WELCOME BACK!!</h2>
+        <p class="text-gray-500 text-sm mb-6">Enter your mobile number and password to access your account</p>
+
+        <form onsubmit="handleLogin(event)" class="space-y-4">
+          <input type="tel" id="loginMobile" placeholder="Mobile Number" required class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#660B05]">
+
+          <!-- Password with Eye -->
+          <div class="password-wrapper">
+            <input type="password" id="loginPassword" placeholder="Password" required class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#660B05]">
+            <i class="fas fa-eye toggle-password" onclick="togglePassword(this)"></i>
+          </div>
+
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm space-y-2 sm:space-y-0">
+            <label class="flex items-center space-x-2">
+              <input type="checkbox" class="accent-[#660B05]">
+              <span>Remember me</span>
+            </label>
+            <button type="button" onclick="showForgotPasswordModal()" class="text-[#660B05] hover:underline">Forgot Password?</button>
+          </div>
+
+          <button type="submit" class="w-full bg-[#660B05] hover:bg-[#954C2E] text-white font-medium py-2.5 rounded-lg shadow-md transition">Sign In</button>
+        </form>
+
+        <!-- Switch to Signup -->
+        <p class="text-sm text-gray-600 text-center mt-4">
+          Don't have an account?
+          <button onclick="showSignup()" class="text-[#660B05] hover:underline font-semibold">Register</button>
+        </p>
+      </div>
+
+      <!-- Signup Form (Hidden Initially) -->
+      <div id="signupSection" class="hidden">
+        <h2 class="text-2xl md:text-3xl font-bold text-[#660B05] mb-2">Let's Bake Memories Together</h2>
+        <p class="text-gray-500 text-sm mb-6">Create your account and never miss out on sweet moments again.</p>
+
+        <form onsubmit="handleSignup(event)" class="space-y-4">
+          <input type="text" id="signupName" placeholder="Full Name" required class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#660B05]">
+          <input type="email" id="signupEmail" placeholder="Email" required class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#660B05]">
+          <input type="tel" id="signupMobile" placeholder="Phone Number" required class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#660B05]">
+
+          <!-- Password with Eye -->
+          <div class="password-wrapper">
+            <input type="password" id="signupPassword" placeholder="Password" required class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#660B05]">
+            <i class="fas fa-eye toggle-password" onclick="togglePassword(this)"></i>
+          </div>
+
+          <div class="password-wrapper">
+            <input type="password" id="signupConfirmPassword" placeholder="Confirm Password" required class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#660B05]">
+            <i class="fas fa-eye toggle-password" onclick="togglePassword(this)"></i>
+          </div>
+          
+          <!-- Password validation message -->
+          <span id="passwordMatchMessage" class="validation-message"></span>
+
+          <button type="submit" id="signupSubmitBtn" class="w-full bg-[#660B05] hover:bg-[#954C2E] text-white font-medium py-2.5 rounded-lg shadow-md transition">Sign Up</button>
+        </form>
+
+        <!-- Switch to Login -->
+        <p class="text-sm text-gray-600 text-center mt-4">
+          Already have an account?
+          <button onclick="showLogin()" class="text-[#660B05] hover:underline font-semibold">Login</button>
+        </p>
+      </div>
+
+      <!-- Logged In Section (Hidden Initially) -->
+      <div id="loggedInSection" class="hidden">
+        <h2 class="text-2xl md:text-3xl font-bold text-[#660B05] mb-2 uppercase">WELCOME BACK!!</h2>
+        <p id="welcomeMessage" class="text-gray-500 text-sm mb-6">You are logged in successfully.</p>
+
+        <button onclick="logout()" class="w-full bg-[#660B05] hover:bg-[#954C2E] text-white font-medium py-2.5 rounded-lg shadow-md transition">Logout</button>
+
+        <!-- Switch to Login -->
+        <p class="text-sm text-gray-600 text-center mt-4">
+          Want to login as different user?
+          <button onclick="showLogin()" class="text-[#660B05] hover:underline font-semibold">Login</button>
+        </p>
+      </div>
+    </div>
+
+    <!-- Right Section (Video & Text) -->
+    <div class="relative w-full md:w-1/2 h-64 md:h-auto order-1 md:order-2">
+      <video autoplay muted loop playsinline class="video-bg">
+        <source src="video/111.mp4" type="video/mp4">
+      </video>
+      <div class="overlay"></div>
+      <div class="absolute inset-0 flex flex-col items-center justify-center text-center text-white px-6">
+        <h3 class="text-2xl md:text-3xl font-bold tracking-wide">THE HOME BAKERY</h3>
+        <p class="text-sm mt-2">Serving fresh delights every single day 🍰</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Forgot Password Modal - Step 1: Email Input -->
+  <div id="forgotPasswordModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold text-[#660B05]">Reset Password</h3>
+        <button onclick="closeForgotPasswordModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+      </div>
+      
+      <!-- Step Indicator -->
+      <div class="step-indicator">
+        <div class="step active" id="forgot-step-1">
+          <div class="step-number">1</div>
+          <div class="step-text">Enter Email</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step" id="forgot-step-2">
+          <div class="step-number">2</div>
+          <div class="step-text">Verify OTP</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step" id="forgot-step-3">
+          <div class="step-number">3</div>
+          <div class="step-text">New Password</div>
+        </div>
+      </div>
+      
+      <!-- Step 1: Email Input -->
+      <div id="forgot-step-1-content">
+        <p class="text-gray-600 text-sm mb-6">Enter your email address and we'll send you an OTP to reset your password.</p>
+        
+        <form id="forgotPasswordForm" onsubmit="handleForgotPassword(event)" class="space-y-4">
+          <input 
+            type="email" 
+            id="forgotPasswordEmail"
+            placeholder="Enter your email address" 
+            required 
+            class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#660B05]"
+          >
+          
+          <button 
+            type="submit" 
+            class="w-full bg-[#660B05] hover:bg-[#954C2E] text-white font-medium py-2.5 rounded-lg shadow-md transition"
+          >
+            Send OTP
+          </button>
+        </form>
+      </div>
+      
+      <button onclick="closeForgotPasswordModal()" class="w-full mt-3 text-[#660B05] hover:underline text-sm">
+        Back to Login
+      </button>
+    </div>
+  </div>
+
+  <!-- Forgot Password Modal - Step 2: OTP Verification -->
+  <div id="verifyOtpModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold text-[#660B05]">Verify OTP</h3>
+        <button onclick="closeVerifyOtpModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+      </div>
+      
+      <!-- Step Indicator -->
+      <div class="step-indicator">
+        <div class="step completed" id="otp-step-1">
+          <div class="step-number"><i class="fas fa-check"></i></div>
+          <div class="step-text">Enter Email</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step active" id="otp-step-2">
+          <div class="step-number">2</div>
+          <div class="step-text">Verify OTP</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step" id="otp-step-3">
+          <div class="step-number">3</div>
+          <div class="step-text">New Password</div>
+        </div>
+      </div>
+      
+      <div class="text-center mb-4">
+        <p class="text-sm text-gray-600">We've sent a 6-digit OTP to:</p>
+        <p class="font-semibold" id="otp-email-display"></p>
+      </div>
+      
+      <form id="verifyOtpForm" onsubmit="handleVerifyOtp(event)" class="space-y-4">
+        <input 
+          type="text" 
+          id="otpInput"
+          placeholder="Enter 6-digit OTP" 
+          required 
+          maxlength="6"
+          pattern="[0-9]{6}"
+          class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#660B05] otp-input"
+        >
+        
+        <div class="flex justify-between">
+          <button 
+            type="button" 
+            id="resendOtpBtn"
+            class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded-lg shadow-md transition resend-btn"
+            disabled
+          >
+            Resend OTP (30s)
+          </button>
+          
+          <button 
+            type="submit" 
+            class="bg-[#660B05] hover:bg-[#954C2E] text-white font-medium py-2 px-4 rounded-lg shadow-md transition"
+          >
+            Verify OTP
+          </button>
+        </div>
+      </form>
+      
+      <button onclick="backToEmailStep()" class="w-full mt-3 text-[#660B05] hover:underline text-sm">
+        Back
+      </button>
+    </div>
+  </div>
+
+  <!-- Forgot Password Modal - Step 3: New Password -->
+  <div id="resetPasswordModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold text-[#660B05]">Create New Password</h3>
+        <button onclick="closeResetPasswordModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+      </div>
+      
+      <!-- Step Indicator -->
+      <div class="step-indicator">
+        <div class="step completed" id="reset-step-1">
+          <div class="step-number"><i class="fas fa-check"></i></div>
+          <div class="step-text">Enter Email</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step completed" id="reset-step-2">
+          <div class="step-number"><i class="fas fa-check"></i></div>
+          <div class="step-text">Verify OTP</div>
+          <div class="step-line"></div>
+        </div>
+        <div class="step active" id="reset-step-3">
+          <div class="step-number">3</div>
+          <div class="step-text">New Password</div>
+        </div>
+      </div>
+      
+      <form id="resetPasswordForm" onsubmit="handleResetPassword(event)" class="space-y-4">
+        <div class="password-wrapper">
+          <input 
+            type="password" 
+            id="newPassword"
+            placeholder="New Password" 
+            required 
+            minlength="6"
+            class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#660B05]"
+          >
+          <i class="fas fa-eye toggle-password" onclick="togglePassword(this)"></i>
+        </div>
+        
+        <div class="password-wrapper">
+          <input 
+            type="password" 
+            id="confirmNewPassword"
+            placeholder="Confirm New Password" 
+            required 
+            minlength="6"
+            class="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#660B05]"
+          >
+          <i class="fas fa-eye toggle-password" onclick="togglePassword(this)"></i>
+        </div>
+        
+        <button 
+          type="submit" 
+          class="w-full bg-[#660B05] hover:bg-[#954C2E] text-white font-medium py-2.5 rounded-lg shadow-md transition"
+        >
+          Reset Password
+        </button>
+      </form>
+      
+      <button onclick="backToOtpStep()" class="w-full mt-3 text-[#660B05] hover:underline text-sm">
+        Back
+      </button>
+    </div>
+  </div>
+
+  <!-- Success Message Modal -->
+  <div id="successModal" class="modal-overlay">
+    <div class="modal-content text-center">
+      <div class="text-green-500 text-4xl mb-4">✓</div>
+      <h3 id="successTitle" class="text-xl font-bold text-[#660B05] mb-2">Success!</h3>
+      <p id="successMessage" class="text-gray-600 text-sm mb-6">Operation completed successfully.</p>
+      <button onclick="closeSuccessModal()" class="w-full bg-[#660B05] hover:bg-[#954C2E] text-white font-medium py-2.5 rounded-lg shadow-md transition">
+        OK
+      </button>
+    </div>
+  </div>
+
+  <!-- Error Message Modal -->
+  <div id="errorModal" class="modal-overlay">
+    <div class="modal-content text-center">
+      <div class="text-red-500 text-4xl mb-4">✗</div>
+      <h3 class="text-xl font-bold text-[#660B05] mb-2">Error!</h3>
+      <p id="errorMessage" class="text-gray-600 text-sm mb-6">Something went wrong. Please try again.</p>
+      <button onclick="closeErrorModal()" class="w-full bg-[#660B05] hover:bg-[#954C2E] text-white font-medium py-2.5 rounded-lg shadow-md transition">
+        OK
+      </button>
+    </div>
+  </div>
+
+  <!-- Toastify JS -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+<script>
+    const API_BASE_URL = 'http://localhost:8082/api';
+    
+    // Forgot password state management
+    let forgotPasswordState = {
+      currentEmail: null,
+      currentOtp: null,
+      otpResendTimer: null,
+      resendTimeout: 30 // 30 seconds
+    };
+
+    function showError(message) {
+      document.getElementById('errorMessage').textContent = message;
+      document.getElementById('errorModal').classList.add('show');
+    }
+
+    function showSuccess(title, message, callback = null) {
+      document.getElementById('successTitle').textContent = title;
+      document.getElementById('successMessage').textContent = message;
+      document.getElementById('successModal').classList.add('show');
+      if (callback) {
+        setTimeout(callback, 1500);
+      }
+    }
+
+    function closeErrorModal() {
+      document.getElementById('errorModal').classList.remove('show');
+      document.body.style.overflow = 'auto';
+    }
+
+    function closeSuccessModal() {
+      document.getElementById('successModal').classList.remove('show');
+      document.body.style.overflow = 'auto';
+    }
+
+    function isLoggedIn() {
+      const session = localStorage.getItem('userSession');
+      if (!session) return false;
+      try {
+        const { expiry } = JSON.parse(session);
+        if (Date.now() < expiry) return true;
+      } catch (e) {}
+      localStorage.removeItem('userSession');
+      return false;
+    }
+
+    // Password validation function
+    function validatePasswords() {
+      const password = document.getElementById('signupPassword').value;
+      const confirmPassword = document.getElementById('signupConfirmPassword').value;
+      const messageElement = document.getElementById('passwordMatchMessage');
+      const signupBtn = document.getElementById('signupSubmitBtn');
+      
+      if (!password && !confirmPassword) {
+        messageElement.textContent = '';
+        messageElement.className = 'validation-message';
+        document.getElementById('signupPassword').classList.remove('password-match', 'password-mismatch');
+        document.getElementById('signupConfirmPassword').classList.remove('password-match', 'password-mismatch');
+        signupBtn.disabled = false;
+        return;
+      }
+      
+      if ((password && !confirmPassword) || (!password && confirmPassword)) {
+        messageElement.textContent = 'Please fill both password fields';
+        messageElement.className = 'validation-message validation-error';
+        document.getElementById('signupPassword').classList.remove('password-match', 'password-mismatch');
+        document.getElementById('signupConfirmPassword').classList.remove('password-match', 'password-mismatch');
+        signupBtn.disabled = true;
+        return;
+      }
+      
+      if (password && confirmPassword) {
+        if (password === confirmPassword) {
+          messageElement.textContent = 'Passwords match!';
+          messageElement.className = 'validation-message validation-success';
+          document.getElementById('signupPassword').classList.add('password-match');
+          document.getElementById('signupPassword').classList.remove('password-mismatch');
+          document.getElementById('signupConfirmPassword').classList.add('password-match');
+          document.getElementById('signupConfirmPassword').classList.remove('password-mismatch');
+          signupBtn.disabled = false;
+        } else {
+          messageElement.textContent = 'Passwords do not match';
+          messageElement.className = 'validation-message validation-error';
+          document.getElementById('signupPassword').classList.add('password-mismatch');
+          document.getElementById('signupPassword').classList.remove('password-match');
+          document.getElementById('signupConfirmPassword').classList.add('password-mismatch');
+          document.getElementById('signupConfirmPassword').classList.remove('password-match');
+          signupBtn.disabled = true;
+        }
+      }
+    }
+
+    async function handleLogin(event) {
+      event.preventDefault();
+      const mobile = document.getElementById('loginMobile').value.trim();
+      const password = document.getElementById('loginPassword').value;
+
+      if (!mobile || !password) {
+        showError('Please fill all fields');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/users/login?mobile=${encodeURIComponent(mobile)}&password=${encodeURIComponent(password)}`);
+        if (!response.ok) {
+          throw new Error('Invalid credentials');
+        }
+        const user = await response.json();
+        localStorage.setItem('userSession', JSON.stringify({ user, expiry: Date.now() + 24 * 60 * 60 * 1000 }));
+        localStorage.setItem('userId', user.userId);
+        window.location.href = 'home.html';
+      } catch (error) {
+        showError(error.message || 'Login failed');
+      }
+    }
+
+    async function handleSignup(event) {
+      event.preventDefault();
+      const name = document.getElementById('signupName').value.trim();
+      const email = document.getElementById('signupEmail').value.trim();
+      const mobile = document.getElementById('signupMobile').value.trim();
+      const password = document.getElementById('signupPassword').value;
+      const confirmPassword = document.getElementById('signupConfirmPassword').value;
+
+      if (!name || !email || !mobile || !password || !confirmPassword) {
+        showError('Please fill all fields');
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        showError('Passwords do not match');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/users/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ customerName: name, email, mobile, status: 'ACTIVE', password })
+        });
+        if (!response.ok) {
+          throw new Error('Registration failed');
+        }
+        const user = await response.json();
+        localStorage.setItem('userSession', JSON.stringify({ user, expiry: Date.now() + 24 * 60 * 60 * 1000 }));
+        localStorage.setItem('userId', user.userId);
+        showSuccess('Account Created!', 'Redirecting to home page...', () => {
+          window.location.href = 'home.html';
+        });
+      } catch (error) {
+        showError(error.message || 'Signup failed');
+      }
+    }
+
+    // Check session on load
+    if (isLoggedIn()) {
+      window.location.href = 'home.html';
+    }
+
+    function showSignup() {
+      document.getElementById("loginSection").classList.add("hidden");
+      document.getElementById("signupSection").classList.remove("hidden");
+      
+      document.getElementById('signupPassword').addEventListener('input', validatePasswords);
+      document.getElementById('signupConfirmPassword').addEventListener('input', validatePasswords);
+    }
+
+    function showLogin() {
+      document.getElementById("signupSection").classList.add("hidden");
+      document.getElementById("loginSection").classList.remove("hidden");
+      document.getElementById('loggedInSection').classList.add('hidden');
+      
+      document.getElementById('signupPassword').removeEventListener('input', validatePasswords);
+      document.getElementById('signupConfirmPassword').removeEventListener('input', validatePasswords);
+    }
+
+    function togglePassword(element) {
+      const input = element.previousElementSibling;
+      if (input.type === "password") {
+        input.type = "text";
+        element.classList.remove('fa-eye');
+        element.classList.add('fa-eye-slash');
+      } else {
+        input.type = "password";
+        element.classList.remove('fa-eye-slash');
+        element.classList.add('fa-eye');
+      }
+    }
+
+    // Forgot Password Flow Functions - COMPLETELY FIXED VERSION
+    function showForgotPasswordModal() {
+      console.log('Opening forgot password modal, current email:', forgotPasswordState.currentEmail);
+      // Only reset if we're starting fresh (no email in state)
+      if (!forgotPasswordState.currentEmail) {
+        resetForgotPasswordFlow();
+      } else {
+        // If we have an email, pre-fill it
+        document.getElementById('forgotPasswordEmail').value = forgotPasswordState.currentEmail;
+      }
+      document.getElementById("forgotPasswordModal").classList.add("show");
+      document.body.style.overflow = "hidden";
+    }
+
+    function closeForgotPasswordModal() {
+      document.getElementById("forgotPasswordModal").classList.remove("show");
+      document.body.style.overflow = "auto";
+      // DON'T reset flow here - preserve state between steps
+    }
+
+    function closeVerifyOtpModal() {
+      document.getElementById("verifyOtpModal").classList.remove("show");
+      document.body.style.overflow = "auto";
+      // DON'T reset flow here - preserve state between steps
+    }
+
+    function closeResetPasswordModal() {
+      document.getElementById("resetPasswordModal").classList.remove("show");
+      document.body.style.overflow = "auto";
+      // DON'T reset flow here - preserve state between steps
+    }
+
+    function resetForgotPasswordFlow() {
+      // Clear form inputs
+      document.getElementById('forgotPasswordForm').reset();
+      document.getElementById('verifyOtpForm').reset();
+      document.getElementById('resetPasswordForm').reset();
+      
+      // Reset state
+      forgotPasswordState = {
+        currentEmail: null,
+        currentOtp: null,
+        otpResendTimer: null,
+        resendTimeout: 30
+      };
+      
+      console.log('Forgot password flow reset - state cleared');
+    }
+
+    function backToEmailStep() {
+      console.log('Going back to email step, current email:', forgotPasswordState.currentEmail);
+      closeVerifyOtpModal();
+      // Don't reset flow, just show the email modal again
+      showForgotPasswordModal();
+    }
+
+    function backToOtpStep() {
+      console.log('Going back to OTP step, current email:', forgotPasswordState.currentEmail);
+      closeResetPasswordModal();
+      // Don't reset flow, just show the OTP modal again
+      showVerifyOtpModal(forgotPasswordState.currentEmail);
+    }
+
+    async function handleForgotPassword(event) {
+      event.preventDefault();
+      
+      const email = document.getElementById("forgotPasswordEmail").value.trim();
+      
+      if (!email) {
+        showError('Please enter email');
+        return;
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        showError('Please enter a valid email address');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/otp/send-email-body`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email })
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(errorText || 'Failed to send OTP');
+        }
+        
+        // Store email in state and proceed to OTP step
+        forgotPasswordState.currentEmail = email;
+        console.log('Email stored for OTP:', forgotPasswordState.currentEmail);
+        
+        closeForgotPasswordModal();
+        showVerifyOtpModal(email);
+        
+        Toastify({
+          text: 'OTP sent successfully to your email!',
+          duration: 4000,
+          gravity: "top",
+          position: "right",
+          className: 'toastify-success',
+          stopOnFocus: true,
+        }).showToast();
+        
+      } catch (error) {
+        console.error('Error sending OTP:', error);
+        
+        if (error.message.includes('404') || error.message.includes('not found')) {
+          showError('Email not found in our system');
+        } else if (error.message.includes('400')) {
+          showError('Invalid email address');
+        } else {
+          showError('Failed to send OTP: ' + error.message);
+        }
+      }
+    }
+
+    function showVerifyOtpModal(email) {
+      console.log('Showing OTP modal for email:', email);
+      document.getElementById('otp-email-display').textContent = email;
+      document.getElementById('otpInput').value = '';
+      startResendTimer();
+      document.getElementById('verifyOtpModal').classList.add('show');
+      document.body.style.overflow = 'hidden';
+    }
+
+    async function handleVerifyOtp(event) {
+  event.preventDefault();
+  
+  const otp = document.getElementById('otpInput').value.trim();
+
+  if (!otp) {
+    showError('Please enter the OTP');
+    return;
+  }
+
+  if (otp.length !== 6 || !/^\d+$/.test(otp)) {
+    showError('Please enter a valid 6-digit OTP');
+    return;
+  }
+
+  console.log('Current email for OTP verification:', forgotPasswordState.currentEmail);
+  
+  if (!forgotPasswordState.currentEmail) {
+    showError('Email not found. Please restart the password reset process.');
+    resetForgotPasswordFlow();
+    closeVerifyOtpModal();
+    showForgotPasswordModal();
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/otp/verify-email`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        email: forgotPasswordState.currentEmail, 
+        otp: otp 
+      })
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('OTP verification failed:', errorText);
+      throw new Error(errorText || 'Invalid OTP');
+    }
+    
+    // Handle both JSON and text responses
+    const contentType = response.headers.get('content-type');
+    let result;
+    
+    if (contentType && contentType.includes('application/json')) {
+      result = await response.json();
+    } else {
+      const text = await response.text();
+      console.log('OTP verification successful (text response):', text);
+      result = { message: text };
+    }
+    
+    console.log('OTP verification successful:', result);
+    
+    forgotPasswordState.currentOtp = otp;
+    closeVerifyOtpModal();
+    showResetPasswordModal();
+    
+    Toastify({
+      text: 'OTP verified successfully!',
+      duration: 4000,
+      gravity: "top",
+      position: "right",
+      className: 'toastify-success',
+      stopOnFocus: true,
+    }).showToast();
+    
+  } catch (error) {
+    console.error('Error verifying OTP:', error);
+    
+    if (error.message.includes('Invalid OTP') || error.message.includes('expired')) {
+      showError('Invalid or expired OTP');
+    } else if (error.message.includes('400')) {
+      showError('Invalid OTP format or missing email');
+    } else if (error.message.includes('Email address is required')) {
+      showError('Email address is required. Please restart the process.');
+      resetForgotPasswordFlow();
+      closeVerifyOtpModal();
+      showForgotPasswordModal();
+    } else {
+      showError('Failed to verify OTP: ' + error.message);
+    }
+  }
+}
+    function showResetPasswordModal() {
+      document.getElementById('newPassword').value = '';
+      document.getElementById('confirmNewPassword').value = '';
+      document.getElementById('resetPasswordModal').classList.add('show');
+      document.body.style.overflow = 'hidden';
+    }
+
+    async function handleResetPassword(event) {
+      event.preventDefault();
+      
+      const newPassword = document.getElementById('newPassword').value;
+      const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+
+      if (!newPassword || !confirmNewPassword) {
+        showError('Please fill all password fields');
+        return;
+      }
+
+      if (newPassword.length < 6) {
+        showError('Password must be at least 6 characters long');
+        return;
+      }
+
+      if (newPassword !== confirmNewPassword) {
+        showError('Passwords do not match');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/users/reset-password`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: forgotPasswordState.currentEmail,
+            otp: forgotPasswordState.currentOtp,
+            newPassword: newPassword
+          })
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(errorText || 'Failed to reset password');
+        }
+        
+        closeResetPasswordModal();
+        showSuccess('Password Reset!', 'Your password has been updated. Please login with your new password.', () => {
+          showLogin();
+        });
+        
+        resetForgotPasswordFlow();
+        
+      } catch (error) {
+        console.error('Error resetting password:', error);
+        showError('Failed to reset password: ' + error.message);
+      }
+    }
+
+    function startResendTimer() {
+      const resendBtn = document.getElementById('resendOtpBtn');
+      let timeLeft = forgotPasswordState.resendTimeout;
+      
+      resendBtn.disabled = true;
+      resendBtn.textContent = `Resend OTP (${timeLeft}s)`;
+      
+      if (forgotPasswordState.otpResendTimer) {
+        clearInterval(forgotPasswordState.otpResendTimer);
+      }
+      
+      forgotPasswordState.otpResendTimer = setInterval(() => {
+        timeLeft--;
+        
+        if (timeLeft <= 0) {
+          clearInterval(forgotPasswordState.otpResendTimer);
+          resendBtn.disabled = false;
+          resendBtn.textContent = 'Resend OTP';
+        } else {
+          resendBtn.textContent = `Resend OTP (${timeLeft}s)`;
+        }
+      }, 1000);
+    }
+
+    // Resend OTP handler
+    document.getElementById('resendOtpBtn').addEventListener('click', async function() {
+      if (!forgotPasswordState.currentEmail) {
+        showError('Email not found');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/otp/send-email-body`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: forgotPasswordState.currentEmail })
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to resend OTP');
+        }
+        
+        startResendTimer();
+        
+        Toastify({
+          text: 'OTP resent successfully!',
+          duration: 4000,
+          gravity: "top",
+          position: "right",
+          className: 'toastify-success',
+          stopOnFocus: true,
+        }).showToast();
+        
+      } catch (error) {
+        console.error('Error resending OTP:', error);
+        showError('Failed to resend OTP: ' + error.message);
+      }
+    });
+
+    // Close modals when clicking outside
+    document.getElementById("forgotPasswordModal").addEventListener("click", function(e) {
+      if (e.target === this) {
+        closeForgotPasswordModal();
+      }
+    });
+
+    document.getElementById("verifyOtpModal").addEventListener("click", function(e) {
+      if (e.target === this) {
+        closeVerifyOtpModal();
+      }
+    });
+
+    document.getElementById("resetPasswordModal").addEventListener("click", function(e) {
+      if (e.target === this) {
+        closeResetPasswordModal();
+      }
+    });
+
+    document.getElementById("successModal").addEventListener("click", function(e) {
+      if (e.target === this) {
+        closeSuccessModal();
+      }
+    });
+
+    document.getElementById("errorModal").addEventListener("click", function(e) {
+      if (e.target === this) {
+        closeErrorModal();
+      }
+    });
+
+    // Close modals with Escape key
+    document.addEventListener("keydown", function(e) {
+      if (e.key === "Escape") {
+        closeForgotPasswordModal();
+        closeVerifyOtpModal();
+        closeResetPasswordModal();
+        closeSuccessModal();
+        closeErrorModal();
+      }
+    });
+  </script>
+
+</body>
+</html>

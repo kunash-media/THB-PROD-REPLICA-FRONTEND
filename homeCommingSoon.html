@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Bakery - Coming Soon</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+               background-image: url(https://i.pinimg.com/1200x/53/0e/26/530e266306137516492b6ce8a0801036.jpg); /* Pink bow pattern */
+            color: #2c003e; /* Deep pink-purple for contrast */
+            font-family: 'Georgia', serif; /* Elegant serif font */
+            overflow: hidden;
+            position: relative;
+        }
+
+        #main-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: stretch;
+            z-index: 1;
+            max-width: 1100px;
+            width: 100%;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.8); /* Semi-transparent white for light bg */
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(255, 105, 180, 0.3); /* Pink shadow */
+            border: 1px solid rgba(255, 192, 203, 0.5); /* Light pink border */
+            margin: 20px;
+            gap: 30px;
+            min-height: 500px; /* Ensures consistent height */
+            position: relative;
+        }
+
+        .left-video {
+            flex: 1;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            border: 2px solid rgba(255, 192, 203, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.5); /* Light fallback */
+        }
+
+        .left-video video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Ensures video fills the container nicely without distortion */
+            display: block;
+        }
+
+        .right-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+            gap: 20px;
+            padding: 0 10px; /* Slight padding for better text alignment */
+            animation: fadeInSlide 1.5s ease-out forwards; /* Added animation for right section */
+            opacity: 0;
+            transform: translateX(50px);
+        }
+
+             .logo {
+            width: 100px;
+            height: auto;
+            margin: 0 auto 10px;
+            display: block;
+            border-radius: 10%;
+            
+            animation: logoFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes fadeInSlide {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        h1 {
+            font-size: 3em;
+            margin: 0;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            color: #8B008B; /* Dark magenta */
+            animation: gentlePulse 2s ease-in-out infinite alternate; /* Subtle pulse for h1 */
+        }
+
+        @keyframes gentlePulse {
+            from {
+                transform: scale(1);
+            }
+            to {
+                transform: scale(1.05);
+            }
+        }
+
+        h2 {
+            font-size: 2em;
+            margin: 0;
+            font-style: italic;
+            color: #4B0082; /* Indigo for contrast */
+        }
+
+        .write-up {
+            font-size: 1.2em;
+            line-height: 1.4;
+            margin: 0;
+            opacity: 0.9;
+            color: #2c003e; /* Deep purple-pink */
+        }
+
+        .timer-section {
+            background: linear-gradient(135deg, rgba(255, 182, 193, 0.4), rgba(255, 105, 180, 0.4)); /* Soft pink gradient */
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 192, 203, 0.5);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            align-self: center;
+        }
+
+        #timer {
+            font-size: 2em; /* Slightly larger for emphasis */
+            margin: 0;
+            font-style: italic;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #timer span {
+            background: rgba(139, 0, 139, 0.6); /* Dark magenta background */
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            min-width: 40px;
+            text-align: center;
+            transition: background-color 0.3s ease; /* Smooth transition for color change */
+        }
+
+        /* Animated countdown particles */
+        #timer::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+            animation: countdownParticles 2s infinite ease-out;
+            z-index: 0;
+            top: 0;
+            left: 0;
+        }
+
+        @keyframes countdownParticles {
+            0% { transform: scale(0) translate(-50%, -50%); opacity: 1; }
+            100% { transform: scale(2) translate(-50%, -50%); opacity: 0; }
+        }
+
+        /* Policy buttons section */
+        .policy-section {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-self: center;
+        }
+
+        .policy-btn {
+            font-size: 0.7em;
+            padding: 4px 8px;
+            background: linear-gradient(135deg, rgba(255, 182, 193, 0.8), rgba(255, 105, 180, 0.8));
+            color: #2c003e;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'Georgia', serif;
+            text-decoration: none;
+            transition: opacity 0.3s ease;
+            display: inline-block;
+        }
+
+        .policy-btn:hover {
+            opacity: 0.8;
+        }
+
+        @media (max-width: 768px) {
+            #main-section {
+                flex-direction: column;
+                align-items: center;
+                padding: 20px;
+                min-height: auto;
+                gap: 20px;
+            }
+
+            .left-video {
+                height: 300px; /* Fixed height for mobile video */
+                width: 100%;
+            }
+
+            .left-video video {
+                height: 100%;
+            }
+
+            h1 {
+                font-size: 2.5em;
+            }
+
+            h2 {
+                font-size: 1.5em;
+            }
+
+            .write-up {
+                font-size: 1em;
+            }
+
+            #timer {
+                font-size: 1.5em;
+            }
+
+            .policy-section {
+                gap: 5px;
+            }
+
+            .policy-btn {
+                font-size: 0.6em;
+                padding: 3px 6px;
+            }
+
+            .logo {
+                width: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="main-section">
+        <div class="left-video">
+            <video src="WhatsApp Video 2025-10-13 at 17.57.04_68bde351.mp4" title="Morning Bake Routine" loop autoplay muted playsinline poster="https://via.placeholder.com/580x500/FFC0CB/8B008B?text=Baking+Soon" style="width:100%; height:100%; object-fit:cover;"></video>
+        </div>
+        <div class="right-content">
+            <img src="/nohat_bg_removed_8c9aa728.png" alt="Home Bakery Logo" class="logo">
+            <h1>Coming Soon</h1>
+            <h2>Home Bakery</h2>
+            <p class="write-up">Stay tuned for our grand opening and get ready to savor the warmth of homemade goodness!</p>
+            <div class="timer-section">
+                <div id="timer">
+                    <span id="days">00</span> days, <span id="minutes">00</span> min, <span id="seconds">30</span> sec
+                </div>
+            </div>
+            <div class="policy-section">
+                <a href="/POLICIES/privacy.html" class="policy-btn">Privacy Policy</a>
+                <a href="/POLICIES/shipping.html" class="policy-btn">Shipping</a>
+                <a href="/POLICIES/refund.html" class="policy-btn">Refund</a>
+                <a href="/POLICIES/cancel.html" class="policy-btn">Return</a>
+                <a href="/POLICIES/disclaimer.html" class="policy-btn">Disclaimer</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 30-Second Looping Countdown Timer
+        let timeLeft = 30 * 1000; // 30 seconds in milliseconds
+
+        function updateTimer() {
+            const distance = timeLeft;
+
+            if (distance <= 0) {
+                // Reset to 30 seconds when it hits zero
+                timeLeft = 30 * 1000;
+                updateDisplay();
+                triggerConfettiBurst(); // Blast confetti when timer hits zero
+                return;
+            }
+
+            const days = 0; // Always 0 for 30-sec timer
+            const hours = 0; // Always 0
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            document.getElementById("days").textContent = days.toString().padStart(2, '0');
+            document.getElementById("minutes").textContent = minutes.toString().padStart(2, '0');
+            document.getElementById("seconds").textContent = seconds.toString().padStart(2, '0');
+
+            // Decrement timeLeft by 1 second
+            timeLeft -= 1000;
+        }
+
+        function updateDisplay() {
+            const distance = timeLeft;
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            document.getElementById("days").textContent = "00";
+            document.getElementById("minutes").textContent = minutes.toString().padStart(2, '0');
+            document.getElementById("seconds").textContent = seconds.toString().padStart(2, '0');
+        }
+
+        function triggerConfettiBurst() {
+          const end = Date.now() + 3 * 1000; // 3 seconds
+          const colors = ["#a786ff", "#fd8bbc", "#eca184", "#f8deb1"];
+
+          (function frame() {
+            if (Date.now() > end) return;
+
+            confetti({
+              particleCount: 2,
+              angle: 60,
+              spread: 55,
+              startVelocity: 60,
+              origin: { x: 0, y: 0.5 },
+              colors: colors,
+            });
+
+            confetti({
+              particleCount: 2,
+              angle: 120,
+              spread: 55,
+              startVelocity: 60,
+              origin: { x: 1, y: 0.5 },
+              colors: colors,
+            });
+
+            requestAnimationFrame(frame);
+          })();
+        }
+
+        window.onload = function () {
+            updateDisplay(); // Initial display
+            setInterval(updateTimer, 1000);
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Bakery - Coming Soon</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-image: url(https://i.pinimg.com/736x/26/29/5d/26295d3bb3c7d3d899a76245885bba5f.jpg); /* Maroon base */
+            color: white;
+            font-family: 'Georgia', serif; /* Elegant serif font */
+            overflow: hidden;
+            position: relative;
+        }
+
+        #main-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: stretch;
+            z-index: 1;
+            max-width: 1100px;
+            width: 100%;
+            padding: 20px 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+            margin: 20px;
+            gap: 30px;
+        }
+
+        .left-video {
+            flex: 1;
+            border-radius: 15px;
+            overflow: hidden;
+            object-fit: contain;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 2px solid rgba(255,255,255,0.1);
+        }
+
+        .left-video iframe {
+            width: 580px;
+            height: 500px; /* Increased height */
+            display: block;
+            transform: scale(1.1); /* Slight zoom effect */
+            transform-origin: center;
+        }
+
+        .right-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: center;
+            gap: 20px;
+        }
+
+        h1 {
+            font-size: 3em;
+            margin: 0;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        h2 {
+            font-size: 2em;
+            margin: 0;
+            font-style: italic;
+            color: rgba(255,255,255,0.9);
+        }
+
+        .timer-section {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+
+        #timer {
+            font-size: 2em; /* Slightly larger for emphasis */
+            margin: 0;
+            font-style: italic;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #timer span {
+            background: rgba(0,0,0,0.3);
+            padding: 5px 10px;
+            border-radius: 5px;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        /* Animated countdown particles */
+        #timer::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+            animation: countdownParticles 2s infinite ease-out;
+            z-index: 0;
+            top: 0;
+            left: 0;
+        }
+
+        @keyframes countdownParticles {
+            0% { transform: scale(0) translate(-50%, -50%); opacity: 1; }
+            100% { transform: scale(2) translate(-50%, -50%); opacity: 0; }
+        }
+
+        /* Confetti canvas - subtle for elegance, warmer colors */
+        #confetti-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        @media (max-width: 768px) {
+            #main-section {
+                flex-direction: column;
+                align-items: center;
+                padding: 20px;
+            }
+
+            .left-video iframe {
+                height: 300px;
+            }
+
+            h1 {
+                font-size: 2.5em;
+            }
+
+            h2 {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="main-section">
+        <div class="left-video">
+            <iframe src="/video/WhatsApp Video 2025-10-13 at 17.57.04_68bde351.mp4" title="Morning Bake Routine" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" loop autoplay muted referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        </div>
+        <div class="right-content">
+            <h1>Coming Soon</h1>
+            <h2>Home Bakery</h2>
+            <p class="write-up">Stay tuned for our grand opening and get ready to savor the warmth of homemade goodness!</p>
+            <div class="timer-section">
+                <div id="timer">
+                    <span id="minutes">00</span>:<span id="seconds">00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <canvas id="confetti-canvas"></canvas>
+
+    <script>
+        // Countdown Timer - 1 minute loop with confetti blast
+        function startTimer(duration, minutesDisplay, secondsDisplay) {
+            var timer = duration, minutes, seconds;
+            var confettiBurstActive = false;
+            var interval = setInterval(function () {
+                minutes = parseInt(timer / 60, 10);
+                seconds = parseInt(timer % 60, 10);
+
+                minutes = minutes < 10 ? "0" + minutes : minutes;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+
+                minutesDisplay.textContent = minutes;
+                secondsDisplay.textContent = seconds;
+
+                if (--timer < 0) {
+                    timer = duration;
+                    triggerConfettiBurst();
+                    confettiBurstActive = true;
+                    setTimeout(() => {
+                        confettiBurstActive = false;
+                    }, 3000); // Burst lasts 3 seconds
+                } else {
+                    confettiBurstActive = false;
+                }
+            }, 1000);
+        }
+
+        window.onload = function () {
+            var oneMinute = 60; // 1 minute in seconds
+            var minutesDisplay = document.querySelector('#minutes');
+            var secondsDisplay = document.querySelector('#seconds');
+            startTimer(oneMinute, minutesDisplay, secondsDisplay);
+        };
+
+        // Confetti Effect - warmer colors for bakery theme with burst on timer reset
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        class Confetti {
+            constructor(isBurst = false) {
+                this.x = isBurst ? canvas.width / 2 : Math.random() * canvas.width;
+                this.y = isBurst ? canvas.height / 2 : Math.random() * canvas.height - canvas.height;
+                this.size = Math.random() * 3 + 2;
+                this.speed = isBurst ? Math.random() * 5 + 5 : Math.random() * 1 + 0.5;
+                this.color = `hsl(${Math.random() * 60}, 70%, 60%)`; // Warm red-orange hues
+                this.rotation = Math.random() * 360;
+                this.rotationSpeed = Math.random() * 5 - 2.5;
+            }
+
+            update() {
+                this.y += this.speed;
+                this.rotation += this.rotationSpeed;
+                if (this.y > canvas.height) {
+                    this.y = -this.size;
+                    this.x = Math.random() * canvas.width;
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x + this.size / 2, this.y + this.size / 2);
+                ctx.rotate(this.rotation * Math.PI / 180);
+                ctx.fillStyle = this.color;
+                ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
+                ctx.restore();
+            }
+        }
+
+        let confettis = [];
+        for (let i = 0; i < 50; i++) {
+            confettis.push(new Confetti());
+        }
+
+        function triggerConfettiBurst() {
+            for (let i = 0; i < 100; i++) {
+                confettis.push(new Confetti(true));
+            }
+            setTimeout(() => {
+                confettis = confettis.slice(-50); // Keep only the original 50 confetti pieces
+            }, 3000);
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            confettis.forEach(confetti => {
+                confetti.update();
+                confetti.draw();
+            });
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+</html>

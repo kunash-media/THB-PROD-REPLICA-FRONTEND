@@ -1,0 +1,19 @@
+DirectoryIndex home.html index.html index.php index.html
+
+Options +Indexes +FollowSymLinks
+RewriteEngine On
+
+# Set index order
+DirectoryIndex index.php index.html
+
+# Force redirect root to login page
+RewriteRule ^$ /Login/index.html [L,R=302]
+
+# If accessing root, redirect to login
+RewriteCond %{REQUEST_URI} ^/$
+RewriteRule ^(.*)$ /Login/index.html [L,R=302]
+
+# Handle empty requests
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^/?$ /Login/index.html [L,R=302]

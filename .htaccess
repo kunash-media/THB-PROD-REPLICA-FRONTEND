@@ -1,0 +1,21 @@
+DirectoryIndex home.html index.html index.php
+
+Options +Indexes +FollowSymLinks
+RewriteEngine On
+
+# ADMIN SUBDOMAIN RULES
+RewriteCond %{HTTP_HOST} ^admin\.thehomebakerypune\.com$ [NC]
+RewriteRule ^$ /admin/Login/index.html [L,R=302]
+
+# If accessing admin root without trailing slash
+RewriteCond %{HTTP_HOST} ^admin\.thehomebakerypune\.com$ [NC]
+RewriteRule ^/$ /admin/Login/index.html [L,R=302]
+
+# MAIN DOMAIN RULES
+RewriteCond %{HTTP_HOST} ^(www\.)?thehomebakerypune\.com$ [NC]
+RewriteRule ^$ /home.html [L]
+
+# Ensure home.html is served for root access
+RewriteCond %{HTTP_HOST} ^(www\.)?thehomebakerypune\.com$ [NC]
+RewriteCond %{REQUEST_URI} ^/$
+RewriteRule ^(.*)$ /home.html [L]

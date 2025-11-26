@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHECKOUT</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="/IMG/LOGO_1-removebg-preview.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary: #660B05;
+            --secondary: #4E1F00;
+            --light: #fef5f8;
+            --dark: #333333;
+            --background: var(--light);
+            --card-bg: #FFFFFF;
+            --text: var(--dark);
+            --text-light: #666666;
+            --border: #E0C9C0;
+        }
+
+        body {
+            background: var(--background);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(102, 11, 5, 0.1);
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: 0 8px 24px rgba(102, 11, 5, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .form-input {
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: #FEFEFE;
+            color: var(--text);
+            max-width: 100%;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(102, 11, 5, 0.1);
+            background: white;
+        }
+
+        .form-label {
+            color: var(--text);
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #550904;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(102, 11, 5, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            border-radius: 10px;
+            padding: 8px 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-selected {
+            background: var(--primary);
+            color: white;
+            border: 2px solid var(--primary);
+            border-radius: 10px;
+            padding: 8px 16px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .address-card {
+            background: var(--card-bg);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .address-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 3px 12px rgba(102, 11, 5, 0.1);
+        }
+
+        .address-card.selected {
+            border-color: var(--primary);
+            background: rgba(102, 11, 5, 0.03);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            backdrop-filter: blur(3px);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 480px;
+            position: relative;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.25);
+            animation: modalSlide 0.3s ease;
+            max-height: 85vh;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+        }
+
+        @keyframes modalSlide {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .close {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            font-size: 22px;
+            cursor: pointer;
+            color: var(--text-light);
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: var(--primary);
+        }
+
+        .section-title {
+            color: var(--text);
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 30px;
+            height: 2px;
+            background: var(--primary);
+            border-radius: 1px;
+        }
+
+        .form-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .form-row > div {
+            flex: 1;
+        }
+
+        .form-row-single {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .container {
+            max-width: 1200px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+            }
+            .modal-content {
+                width: 95%;
+                margin: 8% auto;
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="grid lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 space-y-6">
+                <div class="card p-6">
+                    <h2 class="section-title">Your Order</h2>
+                    <div id="cartItems" class="space-y-4"></div>
+                    <div class="flex justify-end mt-6">
+                        <a href="/home.html">
+                            <button id="addMoreItems" class="btn-primary">
+                                <i class="fas fa-plus mr-2"></i>ADD MORE ITEMS
+                            </button>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card p-6">
+                    <h3 class="section-title">Delivery Schedule</h3>
+                    <div class="flex gap-4 mb-4">
+                        <button id="todayBtn" class="btn-selected flex-1">Today</button>
+                        <button id="customDateBtn" class="btn-secondary flex-1">Custom Date</button>
+                    </div>
+                    <div id="dateTimeDisplay" class="bg-gray-50 p-4 rounded-xl">
+                        <p id="selectedDateDisplay" class="font-semibold text-gray-700"></p>
+                    </div>
+                    <div id="customDatePicker" class="mt-4 hidden">
+                        <input type="text" id="flatpickrInput" class="form-input w-full" placeholder="Select date and time">
+                    </div>
+                </div>
+
+                <div class="card p-6">
+                    <h3 class="section-title">Order Details</h3>
+                    <div id="addressOptions" class="space-y-3 mb-3"></div>
+                    <div class="flex justify-end mt-4">
+                        <button id="addNewAddress" class="btn-primary">
+                            <i class="fas fa-plus mr-2"></i>Add New Address
+                        </button>
+                    </div>
+
+                    <div class="form-row mt-6">
+                        <div>
+                            <label class="form-label">Payment Method</label>
+                            <select id="paymentMethod" class="form-input w-full">
+                                <option value="online">Pay Online</option>
+                                <option value="cod">Cash on Delivery</option>
+                                <option value="pickup">Pickup by Store</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label">Order Type</label>
+                            <div class="flex gap-2">
+                                <button id="ownOrder" class="btn-selected flex-1">Own Order</button>
+                                <button id="giftOrder" class="btn-secondary flex-1">Gift Order</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <div class="card p-6">
+                    <h3 class="section-title">Order Summary</h3>
+                    <div id="orderSummary" class="space-y-3 text-sm"></div>
+                    <button id="placeOrder" class="btn-primary w-full mt-6 py-4 text-lg font-bold">
+                        <i class="fas fa-shopping-cart mr-2"></i>PLACE ORDER
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="addressModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('addressModal')">&times;</span>
+            <h3 class="section-title mb-4">Add New Address</h3>
+            <div class="form-grid">
+                <div class="form-row">
+                    <div><input type="text" id="houseNumber" placeholder="House No." class="form-input w-full"></div>
+                    <div><input type="text" id="areaStreet" placeholder="Area/Street" class="form-input w-full"></div>
+                </div>
+                <div><input type="text" id="landmark" placeholder="Landmark (Optional)" class="form-input w-full"></div>
+                <div class="form-row">
+                    <div><input type="text" id="city" value="Pune" class="form-input w-full"></div>
+                    <div><input type="text" id="pinCode" placeholder="411061" class="form-input w-full" maxlength="6"></div>
+                </div>
+                <div class="form-row">
+                    <div>
+                        <select id="state" class="form-input w-full">
+                            <option value="Maharashtra">Maharashtra</option>
+                        </select>
+                    </div>
+                    <div><input type="text" id="country" value="India" class="form-input w-full" readonly></div>
+                </div>
+                <div>
+                    <select id="addressType" class="form-input w-full">
+                        <option value="Home">Home</option>
+                        <option value="Office">Office</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="flex gap-3 mt-4">
+                    <button id="saveAddress" class="btn-primary flex-1">Save</button>
+                    <button id="cancelAddress" class="btn-secondary flex-1" onclick="closeModal('addressModal')">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="giftModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('giftModal')">&times;</span>
+            <h3 class="section-title mb-6">Gift Order Details</h3>
+            <div class="form-grid">
+                <div><input type="text" id="recipientName" placeholder="Recipient Name" class="form-input w-full"></div>
+                <div><input type="tel" id="recipientPhone" placeholder="Phone" class="form-input w-full" maxlength="10"></div>
+                <div><textarea id="giftMessage" placeholder="Gift Message" class="form-input w-full" rows="3"></textarea></div>
+                <button id="saveGiftDetails" class="btn-primary w-full mt-4">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/checkout.js?v=2"></script>
+</body>
+</html>

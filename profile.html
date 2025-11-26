@@ -1,0 +1,2642 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile | The Home Bakery</title>
+    <link rel="icon" type="image/png" href="/IMG/LOGO_1-removebg-preview.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+        rel="stylesheet">
+    <!-- Toastify CSS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#660B05',
+                        secondary: '#4E1F00',
+                        light: '#fef5f8',
+                        dark: '#333333'
+                    },
+                    boxShadow: {
+                        'nav': '0 2px 5px rgba(0, 0, 0, 0.05)',
+                        'main-nav': '0 2px 15px rgba(0, 0, 0, 0.05)',
+                        'dropdown': '0 15px 30px rgba(0,0,0,0.12)',
+                        'card': '0 4px 10px rgba(0,0,0,0.1)',
+                        'btn': '0 4px 15px rgba(233, 30, 99, 0.3)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .overlay-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .loading-spinner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #660B05;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            color: white;
+        }
+
+        .btn-primary {
+            background: #660B05;
+        }
+
+        .btn-primary:hover {
+            background: #550909;
+        }
+
+        .btn-secondary {
+            background: #4E1F00;
+        }
+
+        .btn-secondary:hover {
+            background: #3d1800;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #333333;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            color: #333333;
+            font-family: inherit;
+        }
+
+        .form-group input:read-only {
+            background-color: #f9fafb;
+            cursor: not-allowed;
+        }
+
+        .address-card {
+            background: white;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        .address-card.default {
+            border-color: #660B05;
+            background-color: #fef5f8;
+        }
+
+        .address-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .address-card-title {
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        .address-card-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .address-card-content p {
+            margin-bottom: 0.5rem;
+            color: #555;
+        }
+
+        .default-badge {
+            background: #660B05;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .success-message,
+        .error-message {
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin: 1rem 0;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .profile-avatar {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .avatar-img {
+            width: 50px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin-right: 1rem;
+            border: 2px solid #660B05;
+        }
+
+        .avatar-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .avatar-placeholder {
+            font-size: 2rem;
+            color: #660B05;
+        }
+
+        .profile-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .profile-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #660B05;
+        }
+
+        .profile-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #660B05;
+        }
+
+        .profile-content {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+
+        .no-addresses {
+            text-align: center;
+            padding: 3rem;
+            color: #6b7280;
+        }
+
+        .edit-mode .form-group input:not([readonly]) {
+            background-color: white;
+            cursor: text;
+        }
+
+        .profile-sidebar {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .profile-menu {
+            list-style: none;
+        }
+
+        .profile-menu li {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+        }
+
+        .profile-menu li.active {
+            background-color: #fef5f8;
+            border-left: 3px solid #660B05;
+            font-weight: 600;
+            color: #660B05;
+        }
+
+        .profile-menu li:hover {
+            background-color: #fef5f8;
+        }
+
+        .profile-menu li i {
+            margin-right: 0.75rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .profile-info {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .info-group {
+            margin-bottom: 1rem;
+        }
+
+        .info-label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #555;
+            font-size: 0.9rem;
+        }
+
+        .info-value {
+            padding: 0.5rem 0;
+            color: #333;
+            font-size: 1rem;
+        }
+
+        /* Toastify custom styles */
+        .toastify {
+            background: linear-gradient(to right, #660B05, #4E1F00);
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            padding: 12px 20px;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .toastify-success {
+            background: linear-gradient(to right, #10b981, #059669);
+        }
+
+        .toastify-error {
+            background: linear-gradient(to right, #ef4444, #dc2626);
+        }
+
+        .resend-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .otp-input {
+            letter-spacing: 8px;
+            font-size: 1.2rem;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        /* Loading state for buttons */
+        .btn-loading {
+            position: relative;
+            color: transparent;
+        }
+
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            top: 50%;
+            left: 50%;
+            margin-left: -8px;
+            margin-top: -8px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-right-color: transparent;
+            animation: spin 1s linear infinite;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .step-number {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .step.active .step-number {
+            background: #660B05;
+            color: white;
+        }
+
+        .step.completed .step-number {
+            background: #10b981;
+            color: white;
+        }
+
+        .step-line {
+            position: absolute;
+            top: 15px;
+            left: 50%;
+            width: 100%;
+            height: 2px;
+            background: #e5e7eb;
+            z-index: -1;
+        }
+
+        .step:last-child .step-line {
+            display: none;
+        }
+
+        .step.active .step-line {
+            background: #660B05;
+        }
+
+        .step.completed .step-line {
+            background: #10b981;
+        }
+
+        /* Search overlay styles */
+        .search-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .search-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .search-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+
+        .search-overlay.show .search-content {
+            transform: scale(1);
+        }
+    </style>
+</head>
+
+<body class="bg-[#fef5f8] min-h-screen text-[#333333]">
+
+    <!-- First Navbar (Top) -->
+    <nav class="sticky top-0 z-50 flex items-center justify-between px-3 py-2 md:px-8 md:py-4 text-white bg-primary">
+        <div class="flex items-center">
+            <span class="text-xs sm:text-sm md:text-base">Welcome To The Home Bakery</span>
+            <div class="flex flex-col items-center ml-2">
+                <div
+                    class="relative h-3.5 w-3.5 sm:h-4 sm:w-4 border border-green-600 rounded-sm flex items-center justify-center bg-white">
+                    <div class="h-1.5 w-1.5 sm:h-2 sm:w-2 bg-green-600 rounded-full"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-2">
+            <i class="fas fa-map-marker-alt text-white text-xs sm:text-sm"></i>
+            <div class="flex flex-col">
+                <span class="text-[10px] sm:text-xs text-white">Deliver to</span>
+                <button id="deliveryLocationBtn"
+                    class="text-xs sm:text-sm font-medium text-white hover:text-gray-300 transition-colors duration-300 flex items-center">
+                    <span id="selectedLocation" class="max-w-[80px] sm:max-w-none truncate">Select Location</span>
+                    <i class="fas fa-chevron-down ml-1 text-xs"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Second Navbar (Main) - FIXED NAVIGATION LINKS -->
+    <nav class="sticky top-12 sm:top-14 md:top-16 z-40 lg:px-8 bg-white shadow-lg border-b border-gray-100">
+        <div class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
+            <div class="flex justify-between items-center h-16 sm:h-20 md:h-24">
+
+                <!-- Logo -->
+                <div class="flex-shrink-0">
+                    <a href="/home.html">
+                        <img src="/IMG/nohat_bg_removed_8c9aa728.png" alt="The Home Bakery Logo"
+                            class="h-10 w-12 sm:h-12 sm:w-14 md:h-16 md:w-18 transition-transform duration-300 hover:scale-105">
+                    </a>
+                </div>
+
+                <!-- Desktop Navigation -->
+                <!-- Desktop Navigation -->
+<div class="hidden lg:flex items-center space-x-2">
+    <a href="/home.html" class="px-3 py-2 text-base font-medium text-black hover:text-primary hover:bg-gray-50 rounded-lg transition-all duration-200">Home</a>
+
+    <!-- Cakes Dropdown -->
+    <div class="relative group">
+        <a href="/CAKES/allcakes.html" class="flex items-center px-3 py-2 text-base font-medium text-black hover:text-primary hover:bg-gray-50 rounded-lg transition-all duration-200">
+            Cakes
+            <i class="fas fa-chevron-down ml-1 text-xs transition-transform duration-300 group-hover:rotate-180"></i>
+        </a>
+        <div class="absolute left-1/2 transform -translate-x-1/2 mt-2 w-[250px] bg-white shadow-dropdown rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[100] border border-gray-100">
+            <div class="p-2">
+                <ul class="space-y-1">
+                    <li><a href="/CAKES/allcakes.html" class="block px-3 py-2 text-sm text-gray-800 hover:text-primary hover:bg-gray-50 rounded-md">All Cakes</a></li>
+                    <li><a href="/CAKES/allcakes.html" class="block px-3 py-2 text-sm text-gray-800 hover:text-primary hover:bg-gray-50 rounded-md">Basic Cakes</a></li>
+                    <li><a href="/CAKES/allcakes.html" class="block px-3 py-2 text-sm text-gray-800 hover:text-primary hover:bg-gray-50 rounded-md">Chocolate Cakes</a></li>
+                    <li><a href="/CAKES/allcakes.html" class="block px-3 py-2 text-sm text-gray-800 hover:text-primary hover:bg-gray-50 rounded-md">Tea Time Cakes</a></li>
+                    <li><a href="/CAKES/allcakes.html" class="block px-3 py-2 text-sm text-gray-800 hover:text-primary hover:bg-gray-50 rounded-md">Premium Cakes</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pastries Dropdown -->
+    <div class="relative group">
+        <a href="/PASTRIES/chocopastry.html" class="flex items-center px-3 py-2 text-base font-medium text-black hover:text-primary hover:bg-gray-50 rounded-lg transition-all duration-200">
+            Pastries
+            <i class="fas fa-chevron-down ml-1 text-xs transition-transform duration-300 group-hover:rotate-180"></i>
+        </a>
+        <div class="absolute left-1/2 transform -translate-x-1/2 mt-2 w-[250px] bg-white shadow-dropdown rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[100] border border-gray-100">
+            <div class="p-2">
+                <ul class="space-y-1">
+                    <li><a href="/PASTRIES/chocopastry.html" class="block px-3 py-2 text-sm text-gray-800 hover:text-primary hover:bg-gray-50 rounded-md">All Pastries</a></li>
+                    <li><a href="/PASTRIES/chocopastry.html" class="block px-3 py-2 text-sm text-gray-800 hover:text-primary hover:bg-gray-50 rounded-md">Chocolate Pastries</a></li>
+                    <li><a href="/PASTRIES/chocopastry.html" class="block px-3 py-2 text-sm text-gray-800 hover:text-primary hover:bg-gray-50 rounded-md">Fruit Pastries</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <a href="/CUSTOM/custom.html" class="px-3 py-2 text-base font-medium text-black hover:text-primary hover:bg-gray-50 rounded-lg transition-all duration-200">Customisation</a>
+
+    <!-- Crave Corner – NO extra class! -->
+    <a href="/SIDEBY/sideby.html" class="px-3 py-2 text-base font-medium text-black hover:text-primary hover:bg-gray-50 rounded-lg transition-all duration-200">Crave Corner</a>
+
+    <a href="/MY ORDERS/myorders.html" class="px-3 py-2 text-base font-medium text-black hover:text-primary hover:bg-gray-50 rounded-lg transition-all duration-200">My Orders</a>
+    <a href="/contact.html" class="px-3 py-2 text-base font-medium text-black hover:text-primary hover:bg-gray-50 rounded-lg transition-all duration-200">Contact Us</a>
+    <a href="/about.html" class="px-3 py-2 text-base font-medium text-black hover:text-primary hover:bg-gray-50 rounded-lg transition-all duration-200">About Us</a>
+</div>
+
+
+                <!-- Right Side Icons -->
+                <!-- Right Side Icons -->
+                <div class="flex items-center space-x-1 sm:space-x-2 md:space-x-3 lg:space-x-4">
+                    <!-- Search -->
+                    <a href="#" id="searchToggle"
+                        class="relative flex flex-col items-center p-2 text-black hover:text-primary">
+                        <i class="fas fa-search text-base sm:text-lg"></i>
+                        <span class="hidden sm:block text-xs mt-1">Search</span>
+                    </a>
+
+                    <!-- Profile Dropdown -->
+                    <div class="relative flex flex-col items-center p-1 text-black hover:text-primary group">
+                        <a href="#" class="flex flex-col items-center">
+                            <i class="fas fa-user text-base sm:text-lg"></i>
+                            <span class="hidden sm:block text-xs mt-1">Profile</span>
+                        </a>
+
+                        <!-- Dropdown Menu -->
+                        <div
+                            class="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 border border-[#660B05] w-48 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 overflow-hidden">
+                            <div class="dropdown-content py-1">
+                                <!-- Dynamic content will be populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Wishlist -->
+                    <a href="/wishlist.html"
+                        class="relative flex flex-col items-center p-0 text-black hover:text-primary">
+                        <i class="fas fa-heart text-base sm:text-lg"></i>
+                        <span class="hidden sm:block text-xs mt-1">Wishlist</span>
+                        <span id="wishlist-count"
+                            class="absolute -top-2 -right-1 bg-primary text-white text-[10px] sm:text-xs rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center">0</span>
+                    </a>
+
+                    <!-- Cart -->
+                    <a href="/cart.html"
+                        class="relative flex flex-col items-center p-1 py-1 px-1 text-black hover:text-primary">
+                        <i class="fas fa-shopping-cart text-base sm:text-lg"></i>
+                        <span class="hidden sm:block text-xs mt-1">Cart</span>
+                        <span id="cart-count"
+                            class="absolute -top-1 -right-1 bg-primary text-white text-[10px] sm:text-xs rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center">0</span>
+                    </a>
+
+                    <!-- Mobile Menu Button -->
+                    <button id="menuToggle"
+                        class="lg:hidden p-2 rounded-md text-gray-700 hover:text-primary hover:bg-gray-50">
+                        <i class="fas fa-bars text-lg sm:text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="navLinks" class="lg:hidden hidden bg-white border-t border-gray-100">
+            <div class="px-4 py-4 space-y-2 max-h-[70vh] overflow-y-auto">
+                <a href="/home.html"
+                    class="block px-4 py-3 text-sm sm:text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg">Home</a>
+
+                <!-- Mobile Cakes Dropdown -->
+                <div class="space-y-0">
+                    <button id="mobileCakesToggle"
+                        class="w-full flex items-center justify-between px-4 py-3 text-sm sm:text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg">
+                        Cakes
+                        <i class="fas fa-chevron-down text-xs transition-transform duration-300"></i>
+                    </button>
+                    <div id="mobileCakesMenu"
+                        class="hidden bg-gray-50 border border-gray-200 rounded-lg overflow-hidden mt-1">
+                        <div class="p-4 space-y-2">
+                            <ul class="space-y-1 text-xs">
+                                <li><a href="/CAKES/allcakes.html"
+                                        class="block px-3 py-2 text-gray-800 hover:text-primary hover:bg-white rounded-md">All
+                                        Cakes</a></li>
+                                <li><a href="/CAKES/allcakes.html"
+                                        class="block px-3 py-2 text-gray-800 hover:text-primary hover:bg-white rounded-md">Basic
+                                        Cakes</a></li>
+                                <li><a href="/CAKES/allcakes.html"
+                                        class="block px-3 py-2 text-gray-800 hover:text-primary hover:bg-white rounded-md">Chocolate
+                                        Cakes</a></li>
+                                <li><a href="/CAKES/allcakes.html"
+                                        class="block px-3 py-2 text-gray-800 hover:text-primary hover:bg-white rounded-md">Tea
+                                        Time Cakes</a></li>
+                                <li><a href="/CAKES/allcakes.html"
+                                        class="block px-3 py-2 text-gray-800 hover:text-primary hover:bg-white rounded-md">Premium
+                                        Cakes</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mobile Pastries Dropdown -->
+                <div class="space-y-0">
+                    <button id="mobilePastriesToggle"
+                        class="w-full flex items-center justify-between px-4 py-3 text-sm sm:text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg">
+                        Pastries
+                        <i class="fas fa-chevron-down text-xs transition-transform duration-300"></i>
+                    </button>
+                    <div id="mobilePastriesMenu"
+                        class="hidden bg-gray-50 border border-gray-200 rounded-lg overflow-hidden mt-1">
+                        <div class="p-4 space-y-2">
+                            <ul class="space-y-1 text-xs">
+                                <li><a href="/PASTRIES/chocopastry.html"
+                                        class="block px-3 py-2 text-gray-800 hover:text-primary hover:bg-white rounded-md">All
+                                        Pastries</a></li>
+                                <li><a href="/PASTRIES/chocopastry.html"
+                                        class="block px-3 py-2 text-gray-800 hover:text-primary hover:bg-white rounded-md">Chocolate
+                                        Pastries</a></li>
+                                <li><a href="/PASTRIES/chocopastry.html"
+                                        class="block px-3 py-2 text-gray-800 hover:text-primary hover:bg-white rounded-md">Fruit
+                                        Pastries</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <a href="/CUSTOM/custom.html"
+                    class="block px-4 py-3 text-sm sm:text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg">Customisation</a>
+                <a href="/SIDEBY/sideby.html"
+                    class="block px-4 py-3 text-sm sm:text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg">Crave
+                    Corner</a>
+                <a href="/MY-ORDERS/myorders.html"
+                    class="block px-4 py-3 text-sm sm:text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg">My
+                    Orders</a>
+                <a href="/contact.html"
+                    class="block px-4 py-3 text-sm sm:text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg">Contact
+                    Us</a>
+                <a href="/about.html"
+                    class="block px-4 py-3 text-sm sm:text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg">About
+                    Us</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Search Overlay -->
+    <div id="searchOverlay" class="search-overlay">
+        <div class="search-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-base sm:text-lg font-semibold text-gray-800">Search Products</h3>
+                <button id="closeSearch" class="text-gray-500 hover:text-gray-700 transition-colors">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <div class="mb-4">
+                <div class="relative">
+                    <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                    <input type="text" id="searchInput" placeholder="Search for cakes, pastries..."
+                        class="w-full pl-10 pr-4 py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
+                </div>
+            </div>
+
+            <div id="searchSuggestions" class="max-h-64 overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <!-- Logout Confirmation Modal -->
+    <div id="logoutModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl p-6 max-w-sm w-full mx-5 shadow-2xl text-center">
+            <h3 class="text-xl font-bold text-gray-900 mb-4">Logout?</h3>
+            <p class="text-sm text-gray-600 mb-6">Are you sure you want to logout?</p>
+            <div class="flex justify-center space-x-3">
+                <button id="modalCancel"
+                    class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-xl transition-colors">Cancel</button>
+                <button id="modalConfirm"
+                    class="px-4 py-2 text-sm font-medium text-white bg-[#660B05] hover:bg-[#4E1F00] rounded-xl transition-colors">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delivery Location Modal -->
+    <div id="deliveryModal"
+        class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div
+            class="bg-white rounded-lg p-4 sm:p-6 w-full max-w-md transform transition-all duration-300 scale-95 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-base sm:text-lg font-semibold text-gray-800">Choose Delivery Location</h3>
+                <button id="closeModal" class="text-gray-500 hover:text-gray-700 transition-colors">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <div class="mb-4">
+                <div class="relative">
+                    <i class="fas fa-map-marker-alt absolute left-3 top-3 text-gray-400"></i>
+                    <input type="text" id="locationInput" placeholder="Enter your area, city or pincode"
+                        class="w-full pl-10 pr-4 py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
+                </div>
+                <div id="locationError" class="text-red-500 text-xs sm:text-sm mt-1 hidden"></div>
+                <div id="locationSuccess" class="text-green-500 text-xs sm:text-sm mt-1 hidden"></div>
+            </div>
+            <div class="mb-4">
+                <h4 class="text-xs sm:text-sm font-medium text-gray-700 mb-2">Popular Areas in Pune</h4>
+                <div class="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
+                    <button
+                        class="location-option text-left p-2 rounded-lg hover:bg-gray-100 transition-colors text-xs sm:text-sm">
+                        <i class="fas fa-map-pin text-primary mr-2"></i>Koregaon Park
+                    </button>
+                    <button
+                        class="location-option text-left p-2 rounded-lg hover:bg-gray-100 transition-colors text-xs sm:text-sm">
+                        <i class="fas fa-map-pin text-primary mr-2"></i>Baner
+                    </button>
+                    <button
+                        class="location-option text-left p-2 rounded-lg hover:bg-gray-100 transition-colors text-xs sm:text-sm">
+                        <i class="fas fa-map-pin text-primary mr-2"></i>Wakad
+                    </button>
+                    <button
+                        class="location-option text-left p-2 rounded-lg hover:bg-gray-100 transition-colors text-xs sm:text-sm">
+                        <i class="fas fa-map-pin text-primary mr-2"></i>Hinjewadi
+                    </button>
+                </div>
+            </div>
+            <button id="confirmLocation"
+                class="w-full bg-gradient-to-r from-primary to-secondary text-white py-3 rounded-lg text-sm sm:text-base font-medium hover:from-secondary hover:to-primary transition-all duration-300 disabled:opacity-50"
+                disabled>
+                Confirm Location
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loading-spinner" class="loading-spinner hidden">
+        <div class="spinner"></div>
+        <p class="mt-4 text-[#333333]">Loading...</p>
+    </div>
+
+    <!-- Main Profile Container -->
+    <div class="profile-container">
+        <!-- Messages Container -->
+        <div id="messages-container"></div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <!-- Profile Sidebar -->
+            <div class="lg:col-span-1">
+                <div class="profile-sidebar">
+                    <div class="profile-avatar">
+                        <div class="avatar-img">
+                            <div class="avatar-placeholder">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg" id="profile-name">Loading...</h3>
+                            <p class="text-gray-600 text-sm">Member</p>
+                        </div>
+                    </div>
+
+                    <ul class="profile-menu">
+                        <li class="active" data-tab="profile-info">
+                            <i class="fas fa-user"></i> Profile Information
+                        </li>
+                        <li data-tab="addresses">
+                            <i class="fas fa-map-marker-alt"></i> Addresses
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Profile Content -->
+            <div class="lg:col-span-3">
+                <!-- Profile Information Tab -->
+                <div id="profile-info-tab" class="profile-content">
+                    <div class="profile-header">
+                        <h1 class="profile-title">Personal Information</h1>
+                        <button class="btn btn-primary" id="edit-profile-btn">Edit Profile</button>
+                    </div>
+
+                    <div class="profile-avatar">
+                        <!-- <div class="avatar-img">
+                            <div class="avatar-placeholder">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        </div> -->
+                        <div>
+                            <!-- <h3 id="profile-full-name" class="font-bold text-xl">Loading...</h3> -->
+                            <!-- <p class="text-gray-600">Member since 2024</p> -->
+                        </div>
+                    </div>
+
+                    <form id="personal-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="customerName">Full Name *</label>
+                                <input type="text" id="customerName" name="customerName" required readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="mobile">Phone Number *</label>
+                                <input type="tel" id="mobile" name="mobile" required readonly>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="email">Email Address *</label>
+                                <input type="email" id="email" name="email" required readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="status">Account Status</label>
+                                <input type="text" id="status" name="status" readonly>
+                            </div>
+                        </div>
+
+                        <div id="profile-form-actions" class="form-actions hidden">
+                            <button type="button" id="cancel-edit-btn" class="btn btn-secondary">Cancel</button>
+                            <button type="submit" id="save-profile-btn" class="btn btn-success">Save Changes</button>
+                        </div>
+                    </form>
+
+                    <div class="form-actions">
+                        <button class="btn btn-secondary" id="change-password-btn">Change Password</button>
+                    </div>
+                </div>
+
+                <!-- Addresses Tab -->
+                <div id="addresses-tab" class="profile-content hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="section-title">Saved Addresses</h2>
+                        <button id="add-address-btn" class="btn btn-primary">Add New Address</button>
+                    </div>
+
+                    <div id="addresses-container">
+                        <div class="no-addresses">
+                            <i class="fas fa-map-marker-alt text-4xl mb-4 text-gray-400"></i>
+                            <p>No addresses saved yet</p>
+                            <p class="text-sm mt-2">Add your first address to get started</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Address Modal -->
+    <div id="address-modal" class="overlay hidden">
+        <div class="overlay-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="address-modal-title" class="text-2xl font-bold text-[#333333]">Add New Address</h2>
+                <button type="button" id="close-address-modal" class="close-btn">&times;</button>
+            </div>
+
+            <form id="address-form">
+                <input type="hidden" id="shippingId" name="shippingId">
+
+                <div class="form-group">
+                    <label for="addressType">Address Type *</label>
+                    <select id="addressType" name="addressType" required>
+                        <option value="">Select Address Type</option>
+                        <option value="Home">Home</option>
+                        <option value="Work">Work</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="houseNo">House/Flat No *</label>
+                        <input type="text" id="houseNo" name="houseNo" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="streetArea">Street/Area *</label>
+                        <input type="text" id="streetArea" name="streetArea" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="landmark">Landmark</label>
+                    <input type="text" id="landmark" name="landmark">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="shippingCity">City *</label>
+                        <input type="text" id="shippingCity" name="shippingCity" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="shippingState">State *</label>
+                        <input type="text" id="shippingState" name="shippingState" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="shippingPincode">Pincode *</label>
+                        <input type="text" id="shippingPincode" name="shippingPincode" required pattern="[0-9]{6}"
+                            maxlength="6">
+                    </div>
+                    <div class="form-group">
+                        <label for="shippingCountry">Country *</label>
+                        <input type="text" id="shippingCountry" name="shippingCountry" required value="India">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="customerPhone">Phone Number *</label>
+                        <input type="tel" id="customerPhone" name="customerPhone" required pattern="[0-9]{10}"
+                            maxlength="10">
+                    </div>
+                    <div class="form-group">
+                        <label for="customerEmail">Email *</label>
+                        <input type="email" id="customerEmail" name="customerEmail" required>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" id="cancel-address-btn" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" id="save-address-btn" class="btn btn-success">Save Address</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div id="password-modal" class="overlay hidden">
+        <div class="overlay-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-[#333333]">Change Password</h2>
+                <button type="button" id="close-password-modal" class="close-btn">&times;</button>
+            </div>
+
+            <form id="password-form">
+                <div class="form-group">
+                    <label for="oldPassword">Current Password *</label>
+                    <input type="password" placeholder="Enter Your Current Password" id="oldPassword" name="oldPassword"
+                        required>
+                    <p class="text-xs text-gray-500 mt-1">Enter your current password to verify your identity</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="newPassword">New Password *</label>
+                    <input type="password" placeholder="Enter Your New Password" id="newPassword" name="newPassword"
+                        required minlength="6">
+                    <p class="text-xs text-gray-500 mt-1">Password must be at least 6 characters long</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm New Password *</label>
+                    <input type="password" placeholder="Enter Confirm Password" id="confirmPassword"
+                        name="confirmPassword" required minlength="6">
+                </div>
+
+                <!-- Forgot Password Link -->
+                <div class="text-center mt-4 mb-2">
+                    <button type="button" id="forgot-password-link"
+                        class="text-primary hover:underline text-sm text-[#660B05]">
+                        <i class="fas fa-key mr-1"></i>Forgot your current password?
+                    </button>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" id="cancel-password-btn" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" id="submit-password-btn" class="btn btn-success">Update Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Forgot Password - Email Input Modal -->
+    <div id="forgot-password-modal" class="overlay hidden">
+        <div class="overlay-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-[#333333]">Reset Password</h2>
+                <button type="button" id="close-forgot-password-modal" class="close-btn">&times;</button>
+            </div>
+
+            <!-- Step Indicator -->
+            <div class="step-indicator">
+                <div class="step active" id="step-1">
+                    <div class="step-number">1</div>
+                    <div class="step-text text-xs">Enter Email</div>
+                    <div class="step-line"></div>
+                </div>
+                <div class="step" id="step-2">
+                    <div class="step-number">2</div>
+                    <div class="step-text text-xs">Verify OTP</div>
+                    <div class="step-line"></div>
+                </div>
+                <div class="step" id="step-3">
+                    <div class="step-number">3</div>
+                    <div class="step-text text-xs">New Password</div>
+                </div>
+            </div>
+
+            <!-- Step 1: Email Input -->
+            <div id="step-1-content">
+                <form id="forgot-password-form">
+                    <div class="form-group">
+                        <label for="forgot-email">Enter Your Email Address *</label>
+                        <input type="email" placeholder="Enter Your Valid And Registered Email" id="forgot-email"
+                            name="email" required>
+                        <p class="text-xs text-gray-500 mt-1">We'll send an OTP to this email address to verify your
+                            identity</p>
+                    </div>
+
+                    <div class="form-actions mt-6">
+                        <button type="button" id="cancel-forgot-password-btn" class="btn btn-secondary">Cancel</button>
+                        <button type="submit" id="send-otp-btn" class="btn btn-primary">Send OTP</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Step 2: OTP Verification -->
+            <div id="step-2-content" class="hidden">
+                <div class="text-center mb-4">
+                    <p class="text-sm text-gray-600">We've sent a 6-digit OTP to:</p>
+                    <p class="font-semibold" id="otp-email-display"></p>
+                </div>
+
+                <div class="form-group">
+                    <label for="otp-input">Enter OTP *</label>
+                    <input type="text" id="otp-input" name="otp" required maxlength="6" pattern="[0-9]{6}"
+                        placeholder="Enter 6-digit OTP" class="otp-input">
+                    <p class="text-xs text-gray-500 mt-1">Check your email for the OTP</p>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" id="resend-otp-btn" class="btn btn-secondary resend-btn">Resend OTP</button>
+                    <button type="button" id="verify-otp-btn" class="btn btn-success">Verify OTP</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reset Password Modal (After OTP Verification) -->
+    <div id="reset-password-modal" class="overlay hidden">
+        <div class="overlay-content">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-[#333333]">Create New Password</h2>
+                <button type="button" id="close-reset-password-modal" class="close-btn">&times;</button>
+            </div>
+
+            <!-- Step Indicator -->
+            <div class="step-indicator">
+                <div class="step completed">
+                    <div class="step-number"><i class="fas fa-check"></i></div>
+                    <div class="step-text text-xs">Enter Email</div>
+                    <div class="step-line"></div>
+                </div>
+                <div class="step completed">
+                    <div class="step-number"><i class="fas fa-check"></i></div>
+                    <div class="step-text text-xs">Verify OTP</div>
+                    <div class="step-line"></div>
+                </div>
+                <div class="step active">
+                    <div class="step-number">3</div>
+                    <div class="step-text text-xs">New Password</div>
+                </div>
+            </div>
+
+            <form id="reset-password-form">
+                <div class="form-group">
+                    <label for="new-password-reset">New Password *</label>
+                    <input type="password" id="new-password-reset" name="newPassword" required minlength="6">
+                    <p class="text-xs text-gray-500 mt-1">Password must be at least 6 characters long</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm-password-reset">Confirm New Password *</label>
+                    <input type="password" id="confirm-password-reset" name="confirmPassword" required minlength="6">
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" id="cancel-reset-password-btn" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" id="submit-reset-password-btn" class="btn btn-success">Reset Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer Section -->
+    <footer class="bg-white text-gray-800 py-6 px-4">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-center md:text-left">
+
+                <!-- About Us -->
+                <div class="flex flex-col items-center md:items-start">
+                    <!-- <h3 class="text-primary font-bold text-xl mb-2">The Home Bakery</h3> -->
+                    <img src="https://thehomebakerypune.com/IMG/nohat_bg_removed_8c9aa728.png"
+                        alt="The Home Bakery Logo" class="ml-5 mb-5 max-w-20" onerror="this.style.display='none'">
+                    <p class="text-sm mb-4">We bake happiness into every product.</p>
+
+                    <h3 class="text-primary font-bold text-lg mb-2">Follow Us</h3>
+                    <div class="flex justify-center md:justify-start space-x-3">
+                        <a href="https://www.facebook.com/profile.php?id=61557357960651&locale=tl_PH#" target="_blank"
+                            class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white hover:bg-secondary transition-colors">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="https://www.instagram.com/the_home_bakery_pune?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+                            target="_blank"
+                            class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white hover:bg-secondary transition-colors">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="https://wa.me/919503464162?text=Hi%20The%20Home%20Bakery%2C%20I%20would%20like%20to%20know%20more%20about%20your%20products"
+                            target="_blank"
+                            class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white hover:bg-secondary transition-colors">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Policies Section -->
+                <div class="flex flex-col items-center md:items-start">
+                    <h3 class="text-primary font-bold text-xl mb-2">Policies</h3>
+                    <ul class="space-y-1 text-center md:text-left">
+                        <li><a href="/POLICIES/disclaimer.html"
+                                class="text-sm hover:text-primary transition-colors">Disclaimer</a></li>
+                        <li><a href="/POLICIES/privacy.html"
+                                class="text-sm hover:text-primary transition-colors">Privacy Policy</a></li>
+                        <li><a href="/POLICIES/cancel.html"
+                                class="text-sm hover:text-primary transition-colors">Cancellation Policy</a></li>
+                        <li><a href="/POLICIES/shipping.html"
+                                class="text-sm hover:text-primary transition-colors">Shipping & Delivery Policy</a></li>
+                        <li><a href="/POLICIES/refund.html" class="text-sm hover:text-primary transition-colors">Refund
+                                & Cancellation Policy</a></li>
+                    </ul>
+                </div>
+
+                <!-- Quick Links -->
+                <div class="hidden md:block">
+                    <h3 class="text-primary font-bold text-xl mb-2">Quick Links</h3>
+                    <ul class="space-y-1">
+                        <li><a href="/home.html" class="text-sm hover:text-primary transition-colors">Home</a></li>
+                        <li><a href="/CAKES/allcakes.html"
+                                class="text-sm hover:text-primary transition-colors">Cakes</a></li>
+                        <li><a href="/PASTRIES/chocopastry.html"
+                                class="text-sm hover:text-primary transition-colors">Pastries</a></li>
+                        <li><a href="/CUSTOM/custom.html"
+                                class="text-sm hover:text-primary transition-colors">Customise</a></li>
+                        <li><a href="/SIDEBY/sideby.html" class="text-sm hover:text-primary transition-colors">Special
+                                Offers</a></li>
+                    </ul>
+                </div>
+
+                <!-- Contact & Social -->
+                <div class="flex flex-col items-center md:items-start">
+                    <h3 class="text-primary font-bold text-xl mb-2">Contact Us</h3>
+                    <ul class="space-y-1 text-center md:text-left">
+                        <!-- Name Section -->
+                        <li class="flex items-center justify-center md:justify-start">
+                            <i class="fas fa-user mr-3 text-primary text-sm"></i>
+                            <span class="text-sm font-bold">Anjali Nilesh Pande</span>
+                        </li>
+
+                        <!-- Address Section -->
+                        <li class="flex items-start justify-center md:justify-start">
+                            <i class="fas fa-map-marker-alt mt-1 mr-3 text-primary text-sm"></i>
+                            <span class="text-sm">G - 004, ALDEA ESPANOLA PHASE, 6 & 7, opp. Orchid Hotel, Mahalunge,
+                                Pune Maharashtra 411045</span>
+                        </li>
+
+                        <!-- Phone Section -->
+                        <li class="flex items-center justify-center md:justify-start">
+                            <i class="fas fa-phone-alt mr-3 text-primary text-sm"></i>
+                            <span class="text-sm">+91 9537999898</span>
+                        </li>
+
+                        <!-- Email Section -->
+                        <li class="flex items-center justify-center md:justify-start">
+                            <i class="fas fa-envelope mr-3 text-primary text-sm"></i>
+                            <span class="text-sm">thehomebakery2020@gmail.com</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Copyright -->
+            <div class="border-t border-gray-300 mt-6 pt-4 text-center">
+                <p class="text-sm">© 2025 The Home Bakery. All rights reserved. | GST : 27BAIPD6573J1ZE</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Floating Action Buttons -->
+    <div class="fixed bottom-5 right-5 z-50 flex flex-col space-y-3">
+        <!-- Scroll to Top Button -->
+        <button id="scrollToTop"
+            class="w-12 h-12 bg-primary hover:bg-secondary rounded-full shadow-lg flex items-center justify-center text-white transition-all duration-400 transform hover:scale-110 opacity-0 invisible">
+            <i class="fas fa-arrow-up text-lg"></i>
+        </button>
+        <!-- WhatsApp Button -->
+        <a href="https://wa.me/919503464162" target="_blank"
+            class="w-12 h-12 bg-green-500 hover:bg-green-600 rounded-full shadow-lg flex items-center justify-center text-white transition-all duration-400 transform hover:scale-110">
+            <i class="fab fa-whatsapp text-lg"></i>
+        </a>
+    </div>
+
+    <!-- Toastify JS -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+    <script>
+        // ==================== NAVBAR JS  FUNCTIONALITY ====================
+
+        // Login & Profile Dropdown
+        function isLoggedIn() {
+            const session = localStorage.getItem('userSession');
+            if (!session) return false;
+            try {
+                const { expiry } = JSON.parse(session);
+                if (Date.now() < expiry) return true;
+            } catch (e) { }
+            localStorage.removeItem('userSession');
+            return false;
+        }
+
+        function populateDropdown() {
+            const dropdowns = document.querySelectorAll('.dropdown-content');
+            const content = isLoggedIn() ? `
+            <a href="/profile.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">My Profile</a>
+            <a href="#" onclick="showLogoutModal(); return false;" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Logout</a>
+        ` : `
+            <a href="/login.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Login/Signup</a>
+        `;
+            dropdowns.forEach(dropdown => {
+                dropdown.innerHTML = content;
+            });
+        }
+
+        function showLogoutModal() {
+            document.getElementById('logoutModal').classList.remove('hidden');
+        }
+
+        function hideLogoutModal() {
+            document.getElementById('logoutModal').classList.add('hidden');
+        }
+
+        function performLogout() {
+            localStorage.removeItem('userId');
+            localStorage.removeItem('userSession');
+            populateDropdown();
+            hideLogoutModal();
+            window.location.href = '/home.html';
+        }
+
+        // Mobile Menu Toggle
+        function setupMobileMenu() {
+            const menuToggle = document.getElementById('menuToggle');
+            const navLinks = document.getElementById('navLinks');
+            const hamburgerIcon = menuToggle?.querySelector('i');
+
+            if (menuToggle && navLinks) {
+                menuToggle.addEventListener('click', () => {
+                    navLinks.classList.toggle('hidden');
+                    const isOpen = !navLinks.classList.contains('hidden');
+                    if (isOpen) {
+                        hamburgerIcon.classList.remove('fa-bars');
+                        hamburgerIcon.classList.add('fa-times');
+                        document.body.style.overflow = 'hidden';
+                    } else {
+                        hamburgerIcon.classList.remove('fa-times');
+                        hamburgerIcon.classList.add('fa-bars');
+                        document.body.style.overflow = '';
+                    }
+                });
+
+                // Close menu when clicking on links
+                const mobileLinks = navLinks.querySelectorAll('a');
+                mobileLinks.forEach(link => {
+                    link.addEventListener('click', () => {
+                        navLinks.classList.add('hidden');
+                        hamburgerIcon.classList.remove('fa-times');
+                        hamburgerIcon.classList.add('fa-bars');
+                        document.body.style.overflow = '';
+                    });
+                });
+
+                // Close menu when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!menuToggle.contains(e.target) && !navLinks.contains(e.target)) {
+                        navLinks.classList.add('hidden');
+                        hamburgerIcon.classList.remove('fa-times');
+                        hamburgerIcon.classList.add('fa-bars');
+                        document.body.style.overflow = '';
+                    }
+                });
+            }
+        }
+
+        // Mobile Dropdown Toggles
+        function setupMobileDropdowns() {
+            // Cakes dropdown
+            const mobileCakesToggle = document.getElementById('mobileCakesToggle');
+            const mobileCakesMenu = document.getElementById('mobileCakesMenu');
+            const cakesIcon = mobileCakesToggle?.querySelector('i');
+
+            if (mobileCakesToggle && mobileCakesMenu && cakesIcon) {
+                mobileCakesToggle.addEventListener('click', () => {
+                    mobileCakesMenu.classList.toggle('hidden');
+                    cakesIcon.classList.toggle('rotate-180');
+                });
+            }
+
+            // Pastries dropdown
+            const mobilePastriesToggle = document.getElementById('mobilePastriesToggle');
+            const mobilePastriesMenu = document.getElementById('mobilePastriesMenu');
+            const pastriesIcon = mobilePastriesToggle?.querySelector('i');
+
+            if (mobilePastriesToggle && mobilePastriesMenu && pastriesIcon) {
+                mobilePastriesToggle.addEventListener('click', () => {
+                    mobilePastriesMenu.classList.toggle('hidden');
+                    pastriesIcon.classList.toggle('rotate-180');
+                });
+            }
+        }
+
+        // Scroll to Top
+        function setupScrollToTop() {
+            const scrollToTopBtn = document.getElementById('scrollToTop');
+            window.addEventListener('scroll', function () {
+                if (window.pageYOffset > 300) {
+                    scrollToTopBtn.classList.remove('opacity-0', 'invisible');
+                    scrollToTopBtn.classList.add('opacity-100', 'visible');
+                } else {
+                    scrollToTopBtn.classList.remove('opacity-100', 'visible');
+                    scrollToTopBtn.classList.add('opacity-0', 'invisible');
+                }
+            });
+
+            if (scrollToTopBtn) {
+                scrollToTopBtn.addEventListener('click', function () {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+            }
+        }
+
+        // ==================== SEARCH FUNCTIONALITY ====================
+
+        const products = [
+            { id: 'basic-cake', name: 'Basic Cake 500 gm', category: 'Cakes', url: '/CAKES/allcakes.html' },
+            { id: 'pineapple-cake', name: 'Pineapple Cake', category: 'Cakes', url: '/CAKES/allcakes.html' },
+            { id: 'chocolate-cake', name: 'Chocolate Cake 500 gm', category: 'Cakes', url: '/CAKES/allcakes.html' },
+            { id: 'pineapple-pastry', name: 'Pineapple Pastry', category: 'Pastries', url: '/PASTRIES/chocopastry.html' },
+            { id: 'chocolate-pastry', name: 'Chocolate Pastry', category: 'Pastries', url: '/PASTRIES/chocopastry.html' }
+        ];
+
+        function showSearchOverlay() {
+            const searchOverlay = document.getElementById('searchOverlay');
+            searchOverlay.classList.add('show');
+            document.body.style.overflow = 'hidden';
+            document.getElementById('searchInput').focus();
+            showAllSuggestions('');
+        }
+
+        function hideSearchOverlay() {
+            const searchOverlay = document.getElementById('searchOverlay');
+            searchOverlay.classList.remove('show');
+            document.body.style.overflow = '';
+            document.getElementById('searchSuggestions').innerHTML = '';
+        }
+
+        function showAllSuggestions(query = '') {
+            const suggestionsBox = document.getElementById('searchSuggestions');
+            const lowerQuery = query.toLowerCase();
+            suggestionsBox.innerHTML = '';
+
+            // Show categories when no query
+            if (query.length === 0) {
+                suggestionsBox.innerHTML = `
+                <div class="px-3 py-2 text-xs font-bold text-gray-600 uppercase border-b">Categories</div>
+                <button class="option w-full text-left px-3 py-2 hover:bg-gray-50 text-xs block truncate" data-url="/CAKES/allcakes.html">ALL CAKES</button>
+                <button class="option w-full text-left px-3 py-2 hover:bg-gray-50 text-xs block truncate" data-url="/PASTRIES/chocopastry.html">ALL PASTRIES</button>
+                <button class="option w-full text-left px-3 py-2 hover:bg-gray-50 text-xs block truncate" data-url="/CUSTOM/custom.html">CUSTOM CAKES</button>
+                <button class="option w-full text-left px-3 py-2 hover:bg-gray-50 text-xs block truncate" data-url="/SIDEBY/sideby.html">SPECIAL OFFERS</button>
+            `;
+
+                // Add click handlers for category buttons
+                document.querySelectorAll('.option').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const url = btn.dataset.url;
+                        if (url) {
+                            window.location.href = url;
+                            hideSearchOverlay();
+                        }
+                    });
+                });
+                return;
+            }
+
+            // Filter products based on query
+            const filtered = products.filter(p =>
+                p.name.toLowerCase().includes(lowerQuery) ||
+                p.category.toLowerCase().includes(lowerQuery)
+            ).slice(0, 5);
+
+            if (filtered.length > 0) {
+                const header = document.createElement('div');
+                header.className = 'px-3 py-2 text-xs font-bold text-gray-600 uppercase border-b';
+                header.textContent = 'Products';
+                suggestionsBox.appendChild(header);
+
+                filtered.forEach(product => {
+                    const a = document.createElement('a');
+                    a.href = product.url;
+                    a.className = 'flex items-center p-3 border-b border-gray-100 hover:bg-gray-50 transition-colors text-sm';
+                    a.innerHTML = `
+                    <i class="fas fa-search text-primary mr-3"></i>
+                    <div class="flex-1 min-w-0">
+                        <div class="font-medium text-gray-900 truncate">${product.name}</div>
+                        <div class="text-xs text-gray-500 truncate">${product.category}</div>
+                    </div>`;
+                    a.addEventListener('click', () => hideSearchOverlay());
+                    suggestionsBox.appendChild(a);
+                });
+            } else {
+                suggestionsBox.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-6 px-4 text-center">
+                    <div class="w-16 h-16 mb-3 rounded-full bg-gray-100 flex items-center justify-center">
+                        <i class="fas fa-search text-gray-400 text-2xl"></i>
+                    </div>
+                    <p class="text-sm font-medium text-gray-700 mb-1">No results found</p>
+                    <p class="text-xs text-gray-500">Try searching for "chocolate", "cake", or "pastry"</p>
+                </div>`;
+            }
+        }
+
+        function setupSearch() {
+            const searchInput = document.getElementById('searchInput');
+            const searchOverlay = document.getElementById('searchOverlay');
+
+            // Open search
+            document.getElementById('searchToggle')?.addEventListener('click', (e) => {
+                e.preventDefault();
+                showSearchOverlay();
+            });
+
+            // Close search
+            document.getElementById('closeSearch')?.addEventListener('click', hideSearchOverlay);
+
+            // Close on overlay click
+            searchOverlay?.addEventListener('click', (e) => {
+                if (e.target === searchOverlay) hideSearchOverlay();
+            });
+
+            // Input handling
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => showAllSuggestions(e.target.value));
+
+                searchInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') hideSearchOverlay();
+                    if (e.key === 'Enter' && searchInput.value) {
+                        const first = products.find(p =>
+                            p.name.toLowerCase().includes(searchInput.value.toLowerCase()) ||
+                            p.category.toLowerCase().includes(searchInput.value.toLowerCase()));
+                        if (first) {
+                            window.location.href = first.url;
+                            hideSearchOverlay();
+                        }
+                    }
+                });
+            }
+        }
+
+        // ==================== PROFILE FUNCTIONALITY ====================
+
+        // Configuration
+        const API_BASE_URL = 'http://localhost:8082/api';
+
+        // Get user ID from authentication system
+        const getUserId = () => {
+            console.log('🔍 Looking for user ID...');
+
+            // Method 1: URL parameters (highest priority - for testing)
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlUserId = urlParams.get('userId');
+            if (urlUserId) {
+                console.log('✅ Found user ID in URL (forcing refresh):', urlUserId);
+                sessionStorage.setItem('userId', urlUserId);
+                localStorage.setItem('userId', urlUserId);
+                return parseInt(urlUserId);
+            }
+
+            // Method 2: localStorage (primary - set by login)
+            const localUserId = localStorage.getItem('userId');
+            if (localUserId) {
+                console.log('✅ Found user ID in localStorage (from login):', localUserId);
+                // Override sessionStorage with current login
+                sessionStorage.setItem('userId', localUserId);
+                return parseInt(localUserId);
+            }
+
+            // Method 3: userSession object
+            const userSession = localStorage.getItem('userSession');
+            if (userSession) {
+                try {
+                    const sessionData = JSON.parse(userSession);
+                    if (sessionData.user && sessionData.user.userId) {
+                        console.log('✅ Found user ID in userSession:', sessionData.user.userId);
+                        const userId = sessionData.user.userId;
+                        // Sync to both storage locations
+                        sessionStorage.setItem('userId', userId);
+                        localStorage.setItem('userId', userId);
+                        return parseInt(userId);
+                    }
+                } catch (e) {
+                    console.error('Error parsing userSession:', e);
+                }
+            }
+
+            // Method 4: sessionStorage (fallback)
+            const storedUserId = sessionStorage.getItem('userId');
+            if (storedUserId) {
+                console.log('⚠️ Using sessionStorage user ID (may be stale):', storedUserId);
+                return parseInt(storedUserId);
+            }
+
+            // No user ID found
+            console.error('❌ No user ID found!');
+            console.log('Storage debug:', {
+                localStorage: localStorage.getItem('userId'),
+                sessionStorage: sessionStorage.getItem('userId'),
+                userSession: localStorage.getItem('userSession')
+            });
+
+            // Redirect to login if no user ID found
+            window.location.href = '/Login/index.html';
+            return null;
+        };
+
+        const USER_ID = getUserId();
+
+        // DOM Elements for profile functionality
+        const elements = {
+            loadingSpinner: document.getElementById('loading-spinner'),
+            messagesContainer: document.getElementById('messages-container'),
+            personalForm: document.getElementById('personal-form'),
+            addressesContainer: document.getElementById('addresses-container'),
+            addressModal: document.getElementById('address-modal'),
+            passwordModal: document.getElementById('password-modal'),
+            forgotPasswordModal: document.getElementById('forgot-password-modal'),
+            resetPasswordModal: document.getElementById('reset-password-modal'),
+            addressForm: document.getElementById('address-form'),
+            passwordForm: document.getElementById('password-form'),
+            forgotPasswordForm: document.getElementById('forgot-password-form'),
+            resetPasswordForm: document.getElementById('reset-password-form'),
+            editProfileBtn: document.getElementById('edit-profile-btn'),
+            changePasswordBtn: document.getElementById('change-password-btn'),
+            addAddressBtn: document.getElementById('add-address-btn'),
+            profileFormActions: document.getElementById('profile-form-actions'),
+            cancelEditBtn: document.getElementById('cancel-edit-btn'),
+            saveProfileBtn: document.getElementById('save-profile-btn'),
+            cancelAddressBtn: document.getElementById('cancel-address-btn'),
+            saveAddressBtn: document.getElementById('save-address-btn'),
+            cancelPasswordBtn: document.getElementById('cancel-password-btn'),
+            submitPasswordBtn: document.getElementById('submit-password-btn'),
+            closeAddressModal: document.getElementById('close-address-modal'),
+            closePasswordModal: document.getElementById('close-password-modal'),
+            closeForgotPasswordModal: document.getElementById('close-forgot-password-modal'),
+            closeResetPasswordModal: document.getElementById('close-reset-password-modal'),
+            addressModalTitle: document.getElementById('address-modal-title'),
+            profileInfoTab: document.getElementById('profile-info-tab'),
+            addressesTab: document.getElementById('addresses-tab'),
+            profileName: document.getElementById('profile-name'),
+            profileFullName: document.getElementById('profile-full-name'),
+            forgotPasswordLink: document.getElementById('forgot-password-link'),
+            cancelForgotPasswordBtn: document.getElementById('cancel-forgot-password-btn'),
+            sendOtpBtn: document.getElementById('send-otp-btn'),
+            resendOtpBtn: document.getElementById('resend-otp-btn'),
+            verifyOtpBtn: document.getElementById('verify-otp-btn'),
+            cancelResetPasswordBtn: document.getElementById('cancel-reset-password-btn'),
+            submitResetPasswordBtn: document.getElementById('submit-reset-password-btn'),
+            step1Content: document.getElementById('step-1-content'),
+            step2Content: document.getElementById('step-2-content'),
+            step1: document.getElementById('step-1'),
+            step2: document.getElementById('step-2'),
+            step3: document.getElementById('step-3'),
+            otpEmailDisplay: document.getElementById('otp-email-display')
+        };
+
+        // API Service - UPDATED WITH CORRECT ADDRESS ENDPOINTS
+        // API Service - UPDATED WITH CORRECT ADDRESS ENDPOINTS AND OTP METHODS
+        const apiService = {
+            baseUrl: API_BASE_URL,
+
+            async request(url, options = {}) {
+                try {
+                    console.log('🌐 API Request:', url, options);
+
+                    const config = {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            ...options.headers
+                        },
+                        ...options
+                    };
+
+                    if (options.body) {
+                        config.body = JSON.stringify(options.body);
+                    }
+
+                    const response = await fetch(url, config);
+                    console.log('📨 Response Status:', response.status);
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error('❌ API Error:', response.status, errorText);
+                        throw new Error(`API Error: ${response.status} - ${errorText}`);
+                    }
+
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        const data = await response.json();
+                        console.log('✅ API Response Data:', data);
+                        return data;
+                    } else {
+                        console.log('✅ API Response: Empty or non-JSON');
+                        return null;
+                    }
+                } catch (error) {
+                    console.error('🚨 API Request Failed:', error);
+                    throw error;
+                }
+            },
+
+            async getCurrentUser(userId) {
+                if (!userId) {
+                    throw new Error('User ID is required');
+                }
+                console.log('[ApiService] Fetching user profile for userId:', userId);
+                return this.request(`${this.baseUrl}/users/${userId}`);
+            },
+
+            async updateUser(userId, userData) {
+                return this.request(`${this.baseUrl}/users/update/${userId}`, {
+                    method: 'PATCH',
+                    body: userData
+                });
+            },
+
+            async changePassword(userId, oldPassword, newPassword) {
+                return this.request(`${this.baseUrl}/users/change-password/${userId}`, {
+                    method: 'PATCH',
+                    body: {
+                        oldPassword: oldPassword,
+                        newPassword: newPassword
+                    }
+                });
+            },
+
+            // UPDATED: Correct address endpoints
+            async getAddresses(userId) {
+                return this.request(`${this.baseUrl}/addresses/get-address-by-userId/${userId}`);
+            },
+
+            async createAddress(userId, addressData) {
+                return this.request(`${this.baseUrl}/addresses/create-address/${userId}`, {
+                    method: 'POST',
+                    body: addressData
+                });
+            },
+
+            async updateAddress(userId, shippingId, addressData) {
+                return this.request(`${this.baseUrl}/addresses/patch-address/${userId}/${shippingId}`, {
+                    method: 'PATCH',
+                    body: addressData
+                });
+            },
+
+            async deleteAddress(userId, shippingId) {
+                return this.request(`${this.baseUrl}/addresses/delete-address/${userId}/${shippingId}`, {
+                    method: 'DELETE'
+                });
+            },
+
+            // ADDED: OTP Methods
+            async sendEmailOtp(email) {
+                console.log('[ApiService] Sending email OTP to:', email);
+                return this.request(`${this.baseUrl}/otp/send-email-body`, {
+                    method: 'POST',
+                    body: { email }
+                });
+            },
+
+            async verifyEmailOtp(email, otp) {
+                console.log('[ApiService] Verifying email OTP for:', email);
+                return this.request(`${this.baseUrl}/otp/verify-email`, {
+                    method: 'POST',
+                    body: {
+                        email: email,
+                        otp: otp
+                    }
+                });
+            },
+
+            async resetPasswordWithOtp(email, otp, newPassword) {
+                console.log('[ApiService] Resetting password with OTP for:', email);
+                return this.request(`${this.baseUrl}/users/reset-password`, {
+                    method: 'POST',
+                    body: {
+                        email: email,
+                        otp: otp,
+                        newPassword: newPassword
+                    }
+                });
+            },
+            // UPDATED: Correct address endpoints
+            async getAddresses(userId) {
+                return this.request(`${this.baseUrl}/addresses/get-address-by-userId/${userId}`);
+            },
+
+            async createAddress(userId, addressData) {
+                return this.request(`${this.baseUrl}/addresses/create-address/${userId}`, {
+                    method: 'POST',
+                    body: addressData
+                });
+            },
+
+            async updateAddress(userId, shippingId, addressData) {
+                return this.request(`${this.baseUrl}/addresses/patch-address/${userId}/${shippingId}`, {
+                    method: 'PATCH',
+                    body: addressData
+                });
+            },
+
+            async deleteAddress(userId, shippingId) {
+                return this.request(`${this.baseUrl}/addresses/delete-address/${userId}/${shippingId}`, {
+                    method: 'DELETE'
+                });
+            },
+
+            async resetPasswordWithOtp(email, otp, newPassword) {
+                return this.request(`${this.baseUrl}/users/reset-password`, {
+                    method: 'POST',
+                    body: {
+                        email: email,
+                        otp: otp,
+                        newPassword: newPassword
+                    }
+                });
+            }
+        };
+
+        // UI Utilities 
+        const uiUtils = {
+            showLoading() {
+                elements.loadingSpinner.classList.remove('hidden');
+            },
+
+            hideLoading() {
+                elements.loadingSpinner.classList.add('hidden');
+            },
+
+            showMessage(message, type = 'success') {
+                const existingMessages = elements.messagesContainer.querySelectorAll('.success-message, .error-message');
+                existingMessages.forEach(msg => msg.remove());
+
+                const messageDiv = document.createElement('div');
+                messageDiv.className = type === 'success' ? 'success-message' : 'error-message';
+                messageDiv.textContent = message;
+
+                elements.messagesContainer.appendChild(messageDiv);
+
+                setTimeout(() => {
+                    if (messageDiv.parentNode) {
+                        messageDiv.remove();
+                    }
+                }, 5000);
+            },
+
+            showToast(message, type = 'success') {
+                Toastify({
+                    text: message,
+                    duration: 4000,
+                    gravity: "top",
+                    position: "right",
+                    className: type === 'success' ? 'toastify-success' : 'toastify-error',
+                    stopOnFocus: true,
+                }).showToast();
+            },
+
+            toggleEditMode(enable) {
+                isEditMode = enable;
+                const inputs = elements.personalForm.querySelectorAll('input');
+
+                inputs.forEach(input => {
+                    if (input.id !== 'status') {
+                        input.readOnly = !enable;
+                    }
+                });
+
+                elements.profileFormActions.classList.toggle('hidden', !enable);
+                elements.personalForm.parentElement.classList.toggle('edit-mode', enable);
+            },
+
+            renderAddresses(addresses) {
+                console.log('🎨 Rendering addresses:', addresses);
+
+                if (!addresses || addresses.length === 0) {
+                    elements.addressesContainer.innerHTML = `
+                    <div class="no-addresses">
+                        <i class="fas fa-map-marker-alt text-4xl mb-4 text-gray-400"></i>
+                        <p>No addresses saved yet</p>
+                        <p class="text-sm mt-2">Add your first address to get started</p>
+                    </div>
+                `;
+                    return;
+                }
+
+                elements.addressesContainer.innerHTML = addresses.map(address => {
+                    return `
+                    <div class="address-card">
+                        <div class="address-card-header">
+                            <div class="address-card-title">
+                                ${address.addressType || 'Shipping'} Address
+                            </div>
+                            <div class="address-card-actions">
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="editAddress(${address.shippingId})">
+                                    <i class="fas fa-edit mr-1"></i>Edit
+                                </button>
+                                <button type="button" class="btn btn-danger btn-sm" onclick="deleteAddress(${address.shippingId})">
+                                    <i class="fas fa-trash mr-1"></i>Delete
+                                </button>
+                            </div>
+                        </div>
+                        <div class="address-card-content">
+                            <p><strong>${address.houseNo || ''}, ${address.streetArea || address.shippingAddress || ''}</strong></p>
+                            ${address.landmark ? `<p>Landmark: ${address.landmark}</p>` : ''}
+                            <p>${address.shippingCity}, ${address.shippingState} - ${address.shippingPincode}</p>
+                            <p>${address.shippingCountry || 'India'}</p>
+                            <p class="mt-2">
+                                <i class="fas fa-phone mr-2"></i>${address.customerPhone} | 
+                                <i class="fas fa-envelope mr-2 ml-2"></i>${address.customerEmail}
+                            </p>
+                        </div>
+                    </div>
+                `;
+                }).join('');
+            },
+
+            openAddressModal(address = null) {
+                // Clear any previous state
+                currentEditingAddressId = address ? address.shippingId : null;
+
+                // Reset form completely first
+                elements.addressForm.reset();
+
+                // Set modal title based on action
+                elements.addressModalTitle.textContent = address ? 'Edit Address' : 'Add New Address';
+
+                if (address) {
+                    // Populate form with existing address data for editing
+                    Object.keys(address).forEach(key => {
+                        const input = elements.addressForm.querySelector(`[name="${key}"]`);
+                        if (input) input.value = address[key] || '';
+                    });
+                    document.getElementById('shippingId').value = address.shippingId;
+                } else {
+                    // For NEW address - set default values and clear everything
+                    document.getElementById('shippingId').value = '';
+                    document.getElementById('shippingCountry').value = 'India';
+
+                    // Pre-fill with user's contact info if available
+                    if (userData) {
+                        document.getElementById('customerPhone').value = userData.mobile || '';
+                        document.getElementById('customerEmail').value = userData.email || '';
+                    }
+
+                    // Clear all other fields to ensure fresh start
+                    document.getElementById('houseNo').value = '';
+                    document.getElementById('streetArea').value = '';
+                    document.getElementById('landmark').value = '';
+                    document.getElementById('shippingCity').value = '';
+                    document.getElementById('shippingState').value = '';
+                    document.getElementById('shippingPincode').value = '';
+                    document.getElementById('addressType').selectedIndex = 0;
+                }
+
+                elements.addressModal.classList.remove('hidden');
+            },
+
+            closeAddressModal() {
+                elements.addressModal.classList.add('hidden');
+
+                // COMPLETELY reset the form and state
+                elements.addressForm.reset();
+                currentEditingAddressId = null;
+                document.getElementById('shippingId').value = '';
+
+                // Reset country to default
+                document.getElementById('shippingCountry').value = 'India';
+            },
+
+            openPasswordModal() {
+                elements.passwordModal.classList.remove('hidden');
+                elements.passwordForm.reset();
+            },
+
+            closePasswordModal() {
+                elements.passwordModal.classList.add('hidden');
+            },
+
+            openForgotPasswordModal() {
+                elements.forgotPasswordModal.classList.remove('hidden');
+                this.resetForgotPasswordFlow();
+            },
+
+            closeForgotPasswordModal() {
+                elements.forgotPasswordModal.classList.add('hidden');
+                this.resetForgotPasswordFlow();
+            },
+
+            openResetPasswordModal() {
+                elements.resetPasswordModal.classList.remove('hidden');
+            },
+
+            closeResetPasswordModal() {
+                elements.resetPasswordModal.classList.add('hidden');
+                elements.resetPasswordForm.reset();
+            },
+
+            resetForgotPasswordFlow() {
+                // Reset form
+                elements.forgotPasswordForm.reset();
+
+                // Show step 1, hide step 2
+                elements.step1Content.classList.remove('hidden');
+                elements.step2Content.classList.add('hidden');
+
+                // Reset step indicators
+                elements.step1.classList.remove('completed');
+                elements.step1.classList.add('active');
+                elements.step2.classList.remove('completed', 'active');
+                elements.step3.classList.remove('completed', 'active');
+
+                // Enable email input
+                document.getElementById('forgot-email').readOnly = false;
+
+                // Clear OTP timer
+                if (forgotPasswordHandlers.otpResendTimer) {
+                    clearInterval(forgotPasswordHandlers.otpResendTimer);
+                }
+            },
+
+            showOtpStep(email) {
+                // Hide step 1, show step 2
+                elements.step1Content.classList.add('hidden');
+                elements.step2Content.classList.remove('hidden');
+
+                // Update step indicators
+                elements.step1.classList.remove('active');
+                elements.step1.classList.add('completed');
+                elements.step2.classList.add('active');
+
+                // Display email
+                elements.otpEmailDisplay.textContent = email;
+
+                // Start resend timer
+                forgotPasswordHandlers.startResendTimer();
+            },
+
+            switchTab(tabName) {
+                document.querySelectorAll('.profile-menu li').forEach(li => {
+                    li.classList.remove('active');
+                });
+                document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+                elements.profileInfoTab.classList.add('hidden');
+                elements.addressesTab.classList.add('hidden');
+
+                if (tabName === 'profile-info') {
+                    elements.profileInfoTab.classList.remove('hidden');
+                } else if (tabName === 'addresses') {
+                    elements.addressesTab.classList.remove('hidden');
+                }
+            }
+        };
+
+        // State
+        let isEditMode = false;
+        let currentEditingAddressId = null;
+        let userData = null;
+        let addresses = [];
+
+        // Forgot Password Handlers
+        const forgotPasswordHandlers = {
+            currentEmail: null,
+            currentOtp: null,
+            otpResendTimer: null,
+            resendTimeout: 30, // 30 seconds
+
+            init() {
+                // Forgot password link handler
+                elements.forgotPasswordLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    uiUtils.closePasswordModal();
+                    setTimeout(() => {
+                        uiUtils.openForgotPasswordModal();
+                    }, 300);
+                });
+
+                // Forgot password modal handlers
+                elements.forgotPasswordForm.addEventListener('submit', (e) => this.handleSendOtp(e));
+                elements.verifyOtpBtn.addEventListener('click', () => this.handleVerifyOtp());
+                elements.resendOtpBtn.addEventListener('click', () => this.handleResendOtp());
+                elements.cancelForgotPasswordBtn.addEventListener('click', () => uiUtils.closeForgotPasswordModal());
+                elements.closeForgotPasswordModal.addEventListener('click', () => uiUtils.closeForgotPasswordModal());
+
+                // Reset password modal handlers
+                elements.resetPasswordForm.addEventListener('submit', (e) => this.handleResetPassword(e));
+                elements.cancelResetPasswordBtn.addEventListener('click', () => uiUtils.closeResetPasswordModal());
+                elements.closeResetPasswordModal.addEventListener('click', () => uiUtils.closeResetPasswordModal());
+
+                // Close modals on outside click
+                [elements.addressModal, elements.passwordModal, elements.forgotPasswordModal, elements.resetPasswordModal].forEach(modal => {
+                    modal.addEventListener('click', (e) => {
+                        if (e.target === modal) {
+                            if (modal === elements.addressModal) uiUtils.closeAddressModal();
+                            if (modal === elements.passwordModal) uiUtils.closePasswordModal();
+                            if (modal === elements.forgotPasswordModal) uiUtils.closeForgotPasswordModal();
+                            if (modal === elements.resetPasswordModal) uiUtils.closeResetPasswordModal();
+                        }
+                    });
+                });
+            },
+
+            async handleSendOtp(event) {
+                event.preventDefault();
+
+                const email = document.getElementById('forgot-email').value.trim();
+
+                if (!email) {
+                    uiUtils.showToast('Please enter your email address', 'error');
+                    return;
+                }
+
+                // Basic email validation
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    uiUtils.showToast('Please enter a valid email address', 'error');
+                    return;
+                }
+
+                try {
+                    uiUtils.showLoading();
+
+                    console.log('📧 Sending OTP to email:', email);
+                    const response = await apiService.sendEmailOtp(email);
+
+                    uiUtils.showToast('OTP sent successfully to your email!', 'success');
+
+                    // Store email and show OTP step
+                    this.currentEmail = email;
+                    document.getElementById('forgot-email').readOnly = true;
+                    uiUtils.showOtpStep(email);
+
+                } catch (error) {
+                    console.error('❌ Error sending OTP:', error);
+
+                    if (error.message.includes('404') || error.message.includes('not found')) {
+                        uiUtils.showToast('Email not found in our system', 'error');
+                    } else if (error.message.includes('400')) {
+                        uiUtils.showToast('Invalid email address', 'error');
+                    } else {
+                        uiUtils.showToast('Failed to send OTP: ' + error.message, 'error');
+                    }
+                } finally {
+                    uiUtils.hideLoading();
+                }
+            },
+
+            async handleVerifyOtp() {
+                const otp = document.getElementById('otp-input').value.trim();
+
+                // Validation
+                if (!otp) {
+                    uiUtils.showToast('Please enter the OTP', 'error');
+                    return;
+                }
+
+                if (otp.length !== 6 || !/^\d+$/.test(otp)) {
+                    uiUtils.showToast('Please enter a valid 6-digit OTP', 'error');
+                    return;
+                }
+
+                try {
+                    uiUtils.showLoading();
+
+                    console.log('🔐 Verifying OTP for:', this.currentEmail);
+
+                    // Verify OTP
+                    await apiService.verifyEmailOtp(this.currentEmail, otp);
+
+                    uiUtils.showToast('OTP verified successfully!', 'success');
+
+                    // Store OTP and open reset password modal
+                    this.currentOtp = otp;
+
+                    // Close forgot password modal and open reset password modal
+                    setTimeout(() => {
+                        uiUtils.closeForgotPasswordModal();
+                        uiUtils.openResetPasswordModal();
+                    }, 1000);
+
+                } catch (error) {
+                    console.error('❌ Error verifying OTP:', error);
+
+                    if (error.message.includes('Invalid OTP') || error.message.includes('expired')) {
+                        uiUtils.showToast('Invalid or expired OTP', 'error');
+                    } else if (error.message.includes('400')) {
+                        uiUtils.showToast('Invalid OTP format', 'error');
+                    } else {
+                        uiUtils.showToast('Failed to verify OTP: ' + error.message, 'error');
+                    }
+                } finally {
+                    uiUtils.hideLoading();
+                }
+            },
+
+            async handleResetPassword(event) {
+                event.preventDefault();
+
+                const newPassword = document.getElementById('new-password-reset').value;
+                const confirmPassword = document.getElementById('confirm-password-reset').value;
+
+                // Validation
+                if (!newPassword || !confirmPassword) {
+                    uiUtils.showToast('Please fill all password fields', 'error');
+                    return;
+                }
+
+                if (newPassword.length < 6) {
+                    uiUtils.showToast('Password must be at least 6 characters long', 'error');
+                    return;
+                }
+
+                if (newPassword !== confirmPassword) {
+                    uiUtils.showToast('Passwords do not match', 'error');
+                    return;
+                }
+
+                try {
+                    uiUtils.showLoading();
+
+                    console.log('🔐 Resetting password for:', this.currentEmail);
+
+                    // Reset password with OTP
+                    await apiService.resetPasswordWithOtp(this.currentEmail, this.currentOtp, newPassword);
+
+                    uiUtils.showToast('Password reset successfully!', 'success');
+
+                    // Close modal and reset state
+                    setTimeout(() => {
+                        uiUtils.closeResetPasswordModal();
+                        this.currentEmail = null;
+                        this.currentOtp = null;
+                        if (this.otpResendTimer) {
+                            clearInterval(this.otpResendTimer);
+                        }
+                    }, 1500);
+
+                } catch (error) {
+                    console.error('❌ Error resetting password:', error);
+                    uiUtils.showToast('Failed to reset password: ' + error.message, 'error');
+                } finally {
+                    uiUtils.hideLoading();
+                }
+            },
+
+            async handleResendOtp() {
+                if (!this.currentEmail) {
+                    uiUtils.showToast('Email not found', 'error');
+                    return;
+                }
+
+                try {
+                    uiUtils.showLoading();
+
+                    console.log('🔄 Resending OTP to:', this.currentEmail);
+                    await apiService.sendEmailOtp(this.currentEmail);
+
+                    uiUtils.showToast('OTP resent successfully!', 'success');
+
+                    // Reset and restart timer
+                    this.startResendTimer();
+
+                } catch (error) {
+                    console.error('❌ Error resending OTP:', error);
+                    uiUtils.showToast('Failed to resend OTP: ' + error.message, 'error');
+                } finally {
+                    uiUtils.hideLoading();
+                }
+            },
+
+            startResendTimer() {
+                const resendBtn = elements.resendOtpBtn;
+                let timeLeft = this.resendTimeout;
+
+                resendBtn.disabled = true;
+                resendBtn.textContent = `Resend OTP (${timeLeft}s)`;
+
+                if (this.otpResendTimer) {
+                    clearInterval(this.otpResendTimer);
+                }
+
+                this.otpResendTimer = setInterval(() => {
+                    timeLeft--;
+
+                    if (timeLeft <= 0) {
+                        clearInterval(this.otpResendTimer);
+                        resendBtn.disabled = false;
+                        resendBtn.textContent = 'Resend OTP';
+                        resendBtn.innerHTML = 'Resend OTP';
+                    } else {
+                        resendBtn.textContent = `Resend OTP (${timeLeft}s)`;
+                        resendBtn.innerHTML = `Resend OTP (${timeLeft}s)`;
+                    }
+                }, 1000);
+            }
+        };
+
+        // Event Handlers
+        const eventHandlers = {
+            async initialize() {
+                if (!USER_ID) {
+                    console.error('No user ID available. User must be logged in.');
+                    uiUtils.showMessage('Please login to view your profile', 'error');
+                    return;
+                }
+
+                try {
+                    uiUtils.showLoading();
+                    console.log('🚀 Initializing profile for user ID:', USER_ID);
+                    await this.loadUserData();
+                    await this.loadAddresses();
+                    this.setupEventListeners();
+                    forgotPasswordHandlers.init();
+                } catch (error) {
+                    console.error('Initialization error:', error);
+                    uiUtils.showMessage('Failed to load profile data: ' + error.message, 'error');
+                } finally {
+                    uiUtils.hideLoading();
+                }
+            },
+
+            setupEventListeners() {
+                // Tab switching
+                document.querySelectorAll('.profile-menu li').forEach(li => {
+                    li.addEventListener('click', () => {
+                        const tabName = li.getAttribute('data-tab');
+                        uiUtils.switchTab(tabName);
+                    });
+                });
+
+                // Profile edit
+                elements.editProfileBtn.addEventListener('click', () => uiUtils.toggleEditMode(true));
+                elements.cancelEditBtn.addEventListener('click', () => {
+                    this.populateUserForm(userData);
+                    uiUtils.toggleEditMode(false);
+                });
+                elements.personalForm.addEventListener('submit', (e) => this.handleProfileUpdate(e));
+
+                // Address management
+                elements.addAddressBtn.addEventListener('click', () => uiUtils.openAddressModal());
+                elements.addressForm.addEventListener('submit', (e) => this.handleAddressSubmit(e));
+                elements.cancelAddressBtn.addEventListener('click', () => uiUtils.closeAddressModal());
+                elements.closeAddressModal.addEventListener('click', () => uiUtils.closeAddressModal());
+
+                // Password change
+                elements.changePasswordBtn.addEventListener('click', () => {
+                    uiUtils.openPasswordModal();
+                    document.getElementById('oldPassword').value = '';
+                    document.getElementById('newPassword').value = '';
+                    document.getElementById('confirmPassword').value = '';
+                });
+                elements.passwordForm.addEventListener('submit', (e) => this.handlePasswordChange(e));
+                elements.cancelPasswordBtn.addEventListener('click', () => uiUtils.closePasswordModal());
+                elements.closePasswordModal.addEventListener('click', () => uiUtils.closePasswordModal());
+            },
+
+            async loadUserData() {
+                try {
+                    console.log('Loading user data for ID:', USER_ID);
+                    userData = await apiService.getCurrentUser(USER_ID);
+                    console.log('User data received:', userData);
+                    this.populateUserForm(userData);
+                } catch (error) {
+                    console.error('Error loading user data:', error);
+                    throw error;
+                }
+            },
+
+            populateUserForm(data) {
+                const fullName = data.customerName || 'User';
+
+                document.getElementById('customerName').value = fullName;
+                document.getElementById('email').value = data.email || '';
+                document.getElementById('mobile').value = data.mobile || '';
+                document.getElementById('status').value = data.status || 'Active';
+
+                elements.profileName.textContent = fullName;
+                // elements.profileFullName.textContent = fullName;
+            },
+
+            async loadAddresses() {
+                try {
+                    console.log('🔄 Fetching addresses for user ID:', USER_ID);
+                    addresses = await apiService.getAddresses(USER_ID);
+                    console.log('✅ Addresses loaded:', addresses);
+                    uiUtils.renderAddresses(addresses);
+                } catch (error) {
+                    console.error('❌ Error loading addresses:', error);
+                    uiUtils.showMessage('Failed to load addresses: ' + error.message, 'error');
+                    uiUtils.renderAddresses([]);
+                }
+            },
+
+            async handleProfileUpdate(event) {
+                event.preventDefault();
+
+                try {
+                    uiUtils.showLoading();
+
+                    const formData = new FormData(elements.personalForm);
+                    const updatedUserData = {
+                        customerName: formData.get('customerName'),
+                        email: formData.get('email'),
+                        mobile: formData.get('mobile')
+                    };
+
+                    console.log('Updating user with data:', updatedUserData);
+                    await apiService.updateUser(USER_ID, updatedUserData);
+
+                    uiUtils.showMessage('Profile updated successfully!');
+                    uiUtils.toggleEditMode(false);
+                    await this.loadUserData();
+
+                } catch (error) {
+                    console.error('Error updating profile:', error);
+                    uiUtils.showMessage('Failed to update profile: ' + error.message, 'error');
+                } finally {
+                    uiUtils.hideLoading();
+                }
+            },
+
+            async handleAddressSubmit(event) {
+                event.preventDefault();
+
+                try {
+                    uiUtils.showLoading();
+
+                    const formData = new FormData(elements.addressForm);
+                    const shippingId = formData.get('shippingId');
+
+                    console.log('🔍 Address Action:', shippingId ? 'EDITING' : 'CREATING NEW');
+
+                    const addressData = {
+                        customerPhone: formData.get('customerPhone'),
+                        customerEmail: formData.get('customerEmail'),
+                        shippingAddress: `${formData.get('houseNo')}, ${formData.get('streetArea')}`,
+                        shippingCity: formData.get('shippingCity'),
+                        shippingState: formData.get('shippingState'),
+                        shippingPincode: formData.get('shippingPincode'),
+                        shippingCountry: formData.get('shippingCountry'),
+                        addressType: formData.get('addressType'),
+                        houseNo: formData.get('houseNo'),
+                        streetArea: formData.get('streetArea'),
+                        landmark: formData.get('landmark')
+                    };
+
+                    console.log('📤 Sending address data:', addressData);
+
+                    if (shippingId) {
+                        // UPDATE existing address
+                        await apiService.updateAddress(USER_ID, shippingId, addressData);
+                        uiUtils.showMessage('Address updated successfully!');
+                    } else {
+                        // CREATE new address
+                        await apiService.createAddress(USER_ID, addressData);
+                        uiUtils.showMessage('New address created successfully!');
+                    }
+
+                    uiUtils.closeAddressModal();
+                    await this.loadAddresses();
+
+                } catch (error) {
+                    console.error('❌ Error saving address:', error);
+                    uiUtils.showMessage('Failed to save address: ' + error.message, 'error');
+                } finally {
+                    uiUtils.hideLoading();
+                }
+            },
+
+            async handlePasswordChange(event) {
+                event.preventDefault();
+
+                const oldPassword = document.getElementById('oldPassword').value;
+                const newPassword = document.getElementById('newPassword').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+
+                if (!oldPassword || !newPassword || !confirmPassword) {
+                    uiUtils.showMessage('Please fill all password fields', 'error');
+                    return;
+                }
+
+                if (newPassword !== confirmPassword) {
+                    uiUtils.showMessage('New passwords do not match', 'error');
+                    return;
+                }
+
+                if (newPassword.length < 6) {
+                    uiUtils.showMessage('Password must be at least 6 characters long', 'error');
+                    return;
+                }
+
+                if (oldPassword === newPassword) {
+                    uiUtils.showMessage('New password cannot be the same as current password', 'error');
+                    return;
+                }
+
+                try {
+                    uiUtils.showLoading();
+
+                    console.log('🔐 Changing password for user:', USER_ID);
+                    await apiService.changePassword(USER_ID, oldPassword, newPassword);
+
+                    uiUtils.showMessage('Password changed successfully!');
+                    uiUtils.closePasswordModal();
+
+                    document.getElementById('oldPassword').value = '';
+                    document.getElementById('newPassword').value = '';
+                    document.getElementById('confirmPassword').value = '';
+
+                } catch (error) {
+                    console.error('Error changing password:', error);
+
+                    if (error.message.includes('Current password is incorrect')) {
+                        uiUtils.showMessage('Current password is incorrect. Please try again or use "Forgot Password" if you don\'t remember it.', 'error');
+                    } else if (error.message.includes('400')) {
+                        uiUtils.showMessage('Invalid request. Please check your inputs.', 'error');
+                    } else {
+                        uiUtils.showMessage('Failed to change password: ' + error.message, 'error');
+                    }
+                } finally {
+                    uiUtils.hideLoading();
+                }
+            }
+        };
+
+        // Global functions for address operations
+        window.editAddress = (shippingId) => {
+            const address = addresses.find(addr => addr.shippingId === shippingId);
+            if (address) {
+                uiUtils.openAddressModal(address);
+            }
+        };
+
+        window.deleteAddress = async (shippingId) => {
+            if (confirm('Are you sure you want to delete this address?')) {
+                try {
+                    uiUtils.showLoading();
+                    await apiService.deleteAddress(USER_ID, shippingId);
+                    uiUtils.showMessage('Address deleted successfully!');
+                    await eventHandlers.loadAddresses();
+                } catch (error) {
+                    console.error('Error deleting address:', error);
+                    uiUtils.showMessage('Failed to delete address: ' + error.message, 'error');
+                } finally {
+                    uiUtils.hideLoading();
+                }
+            }
+        };
+
+        // ==================== INITIALIZATION ====================
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize navbar functionality
+            populateDropdown();
+            setupMobileMenu();
+            setupMobileDropdowns();
+            setupScrollToTop();
+            setupSearch();
+
+            // Initialize logout modal
+            const modal = document.getElementById('logoutModal');
+            const cancelBtn = document.getElementById('modalCancel');
+            const confirmBtn = document.getElementById('modalConfirm');
+
+            if (cancelBtn) cancelBtn.addEventListener('click', hideLogoutModal);
+            if (confirmBtn) confirmBtn.addEventListener('click', performLogout);
+            modal?.addEventListener('click', e => {
+                if (e.target === modal) hideLogoutModal();
+            });
+
+            // Initialize profile functionality
+            console.log('Initializing profile page...');
+            eventHandlers.initialize();
+        });
+    </script>
+</body>
+
+</html>
