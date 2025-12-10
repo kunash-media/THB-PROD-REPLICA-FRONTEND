@@ -1,4 +1,4 @@
-/* ==================== sideby.js – FINAL 100% WORKING WITH YOUR BACKEND ==================== */
+/* ==================== sideby.js – FINAL UPGRADED VERSION (2025) – BACKEND WISHLIST + TOASTIFY ==================== */
 document.addEventListener("DOMContentLoaded", async function () {
 
     /* ===================================================================
@@ -20,13 +20,13 @@ document.addEventListener("DOMContentLoaded", async function () {
     const overlay = document.getElementById('overlay');
 
     // Mobile Menu Toggle
-    // if (menuToggle && navLinks) {
-    //     menuToggle.addEventListener('click', () => {
-    //         navLinks.classList.toggle('hidden');
-    //         const icon = menuToggle.querySelector('i');
-    //         if (icon) icon.classList.toggle('fa-bars').toggle('fa-times');
-    //     });
-    // }
+    window.addEventListener('resize', () => {
+        if (window.innerWidth >= 1024 && !navLinks.classList.contains('hidden')) {
+            navLinks.classList.add('hidden');
+            const icon = menuToggle.querySelector('i');
+            if (icon) icon.classList.replace('fa-times', 'fa-bars');
+        }
+    });
 
     // Search Overlay
     if (searchToggle && searchOverlay && searchInput && searchSuggestions) {
@@ -73,7 +73,8 @@ document.addEventListener("DOMContentLoaded", async function () {
         localStorage.removeItem('userSession');
         populateDropdown();
         hideLogoutModal();
-        showToast('Logged out successfully', 'success');
+        // showToast('Logged out successfully', 'success');
+       
     });
     populateDropdown();
 
@@ -95,26 +96,50 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     /* ===================================================================
-       2. PRODUCTS + FILTERING (NOW 100% WORKING WITH YOUR BACKEND)
+       2. TOASTIFY NOTIFICATION (CENTERED & BEAUTIFUL)
        =================================================================== */
-    let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
-    let allProducts = [];
+    function showToast(msg, type = 'success') {
+        let background = '#10b981'; // green
+        if (type === 'error') background = '#ef4444';
+        if (type === 'warning') background = '#f59e0b';
 
+        Toastify({
+            text: msg,
+            duration: 3000,
+            close: true,
+            gravity: "center",
+            position: "center",
+            stopOnFocus: true,
+            style: {
+                background: background,
+                borderRadius: "16px",
+                padding: "18px 30px",
+                fontSize: "17px",
+                fontWeight: "bold",
+                boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
+            }
+        }).showToast();
+    }
+
+    /* ===================================================================
+       3. PRODUCTS + FILTERING (BACKEND WISHLIST READY)
+       =================================================================== */
     const API_BASE = 'http://localhost:8082';
     const API_SNACKS = `${API_BASE}/api/v1/snacks/get-all-snacks`;
     const ADD_TO_CART_URL = `${API_BASE}/api/cart/add-cart-items`;
+    
+    let allProducts = [];
 
-    // YE HAI SABSE BADI FIX — TERE SIDEBAR KO BACKEND SE MAP KIYA
     const categoryMapping = {
         'all': null,
-        'snacks': ['Patties'],                    // Patties → Snacks
-        'cheesecake-jars': ['Cheesecake Jar'],
-        'brownie': ['Walnut', 'Brownie'],          // Walnut brownie bhi aayega
-        'cookies': ['Cookies'],
-        'croissant': ['Croissant'],
-        'donuts': ['donut'],                       // backend mein "donut" lowercase hai
-        'bombolonis': ['Bambolonis'],              // backend mein "Bambolonis" (typo)
-        'cupcakes': ['Cupcakes']
+        'snacks': ['patties', 'Patties'],
+        'cheesecake-jars': ['cheesecake jar', 'Cheesecake Jar'],
+        'brownie': ['brownie', 'Brownie'],
+        'cookies': ['cookies', 'Cookies'],
+        'croissant': ['croissant', 'Croissant'],
+        'donuts': ['donut', 'Donut', 'donuts', 'Donuts'],
+        'bombolonis': ['bombolonis','Bombolonis','Bomboloni'],
+        'cupcakes': ['cupcake', 'Cupcake', 'cupcakes', 'Cupcakes']
     };
 
     const categories = {
@@ -129,32 +154,8 @@ document.addEventListener("DOMContentLoaded", async function () {
         'cupcakes': { name: 'Cupcakes', icon: 'fas fa-birthday-cake' }
     };
 
-    function showToast(msg, type = 'success') {
-        Toastify({ text: msg, duration: 3000, gravity: "top", position: "right", backgroundColor: type === 'success' ? '#10B981' : '#EF4444' }).showToast();
-    }
-
     function getImageUrl(path) {
         return path?.startsWith('http') ? path : `${API_BASE}${path || ''}` || 'https://via.placeholder.com/400x300?text=No+Image';
-    }
-
-    function updateWishlistCount() {
-        const el = document.getElementById('wishlist-count');
-        if (el) el.textContent = wishlist.length;
-    }
-
-    function toggleWishlist(btn, p) {
-        const icon = btn.querySelector('i');
-        const id = p.skuNumber;
-        const exists = wishlist.some(i => i.id === id);
-        if (exists) {
-            wishlist = wishlist.filter(i => i.id !== id);
-            icon.classList.replace('fa-solid', 'fa-regular').remove('text-red-500').add('text-gray-600');
-        } else {
-            wishlist.push({ id, name: p.productName, price: p.productNewPrice, image: getImageUrl(p.productImageUrl) });
-            icon.classList.replace('fa-regular', 'fa-solid').remove('text-gray-600').add('text-red-500');
-        }
-        localStorage.setItem('wishlist', JSON.stringify(wishlist));
-        updateWishlistCount();
     }
 
     function extractSnackId(url) {
@@ -173,7 +174,14 @@ document.addEventListener("DOMContentLoaded", async function () {
             const res = await fetch(ADD_TO_CART_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId: Number(userId), snackId, quantity: qty, size: "Pack of 6", addonIds: [], itemType: "SNACK" })
+                body: JSON.stringify({ 
+                    userId: Number(userId), 
+                    snackId, 
+                    quantity: qty, 
+                    size: "Pack of 6", 
+                    addonIds: [], 
+                    itemType: "SNACK" 
+                })
             });
             if (!res.ok) throw new Error(await res.text());
             showToast(`${p.productName} ×${qty} added!`, 'success');
@@ -181,39 +189,168 @@ document.addEventListener("DOMContentLoaded", async function () {
         } catch { showToast('Failed to add', 'error'); }
     }
 
-    function renderProduct(p) {
-        const discount = p.productOldPrice > p.productNewPrice ? Math.round(((p.productOldPrice - p.productNewPrice) / p.productOldPrice) * 100) : 0;
-        const heartClass = wishlist.some(i => i.id === p.skuNumber) ? 'text-red-500 fa-solid' : 'text-gray-600 fa-regular';
+    // ==================== BACKEND WISHLIST ====================
 
-        const div = document.createElement('div');
-        div.className = 'bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow relative group';
-        div.innerHTML = `
-            ${discount ? `<div class="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded z-10">${discount}% OFF</div>` : ''}
-            <button class="add-to-wishlist absolute top-3 right-3 p-2 bg-white rounded-full shadow-md hover:bg-red-50 z-10" data-product='${JSON.stringify(p)}'>
-                <i class="far fa-heart ${heartClass} text-lg"></i>
-            </button>
-            <img src="${getImageUrl(p.productImageUrl)}" alt="${p.productName}" class="w-full h-48 object-cover" onerror="this.src='https://via.placeholder.com/400x300?text=No+Image'">
-            <div class="p-4">
-                <h3 class="text-lg font-semibold text-gray-800 mb-2 line-clamp-2">${p.productName}</h3>
-                <div class="flex items-center gap-2 mb-3">
-                    <span class="text-xl font-bold text-primary">₹${p.productNewPrice}</span>
-                    ${p.productOldPrice > p.productNewPrice ? `<span class="text-sm text-gray-500 line-through">₹${p.productOldPrice}</span>` : ''}
-                </div>
-                <div class="flex items-center gap-2">
-                    <div class="flex items-center border border-gray-300 rounded-md">
-                        <button class="qty-btn px-3 py-1 text-gray-600 hover:bg-gray-100" data-action="decrease">−</button>
-                        <input type="text" class="qty-input w-12 text-center border-0" value="1" readonly>
-                        <button class="qty-btn px-3 py-1 text-gray-600 hover:bg-gray-100" data-action="increase">+</button>
-                    </div>
-                    <button class="add-to-cart-btn flex-1 bg-primary hover:bg-secondary text-white px-4 py-2 rounded-md text-sm font-medium flex items-center justify-center gap-1" data-product='${JSON.stringify(p)}'>
-                        <i class="fas fa-shopping-cart"></i>
-                    </button>
-                </div>
-            </div>
-        `;
-        return div;
+
+    async function toggleWishlist(btn, product) {
+    event.stopPropagation();
+
+    if (!window.apiService?.getUserId()) {
+        showToast("Please login to add to wishlist", "warning");
+        setTimeout(() => window.location.href = '/login.html', 1500);
+        return;
     }
 
+    const snackId = extractSnackId(product.productImageUrl);
+    if (!snackId) return showToast('Invalid product', 'error');
+
+    const isActive = btn.querySelector('i').classList.contains('fas');
+
+    try {
+        if (isActive) {
+            const wishlistItemId = btn.dataset.wid;
+            if (wishlistItemId) {
+                await window.apiService.removeFromWishlist(wishlistItemId, 'SNACK');
+                btn.querySelector('i').classList.remove('fas', 'text-red-500');
+                btn.querySelector('i').classList.add('far');
+                btn.dataset.wid = '';
+                showToast('Removed from wishlist', 'success');
+            }
+        } else {
+            // ← YEHI FINAL FIX
+            const res = await fetch(`${window.apiService.baseUrl}/wishlist/add-to-wishlist`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: window.apiService.getUserId(),
+                    snackId: Number(snackId),   // ← snackId bhej raha hai
+                    itemType: 'SNACK'
+                })
+            });
+
+            if (!res.ok) {
+                const err = await res.text();
+                throw new Error(err);
+            }
+
+            const data = await res.json();
+            btn.querySelector('i').classList.remove('far');
+            btn.querySelector('i').classList.add('fas', 'text-red-500');
+            showToast('Added to wishlist', 'success');
+
+            if (data.wishlistItemId) {
+                btn.dataset.wid = data.wishlistItemId;
+            }
+        }
+        await window.apiService.updateWishlistCount();
+    } catch (err) {
+        console.error('Wishlist error:', err);
+        showToast('Failed to update wishlist', 'error');
+    }
+}
+
+
+
+    async function markWishlistedItems() {
+    if (!window.apiService?.getUserId()) return;
+
+    try {
+        const wishlist = await window.apiService.getWishlist();
+
+        // Clear all hearts first
+        document.querySelectorAll('.wishlist-btn, .add-to-wishlist').forEach(btn => {
+            btn.classList.remove('active');
+            const icon = btn.querySelector('i') || btn.querySelector('svg');
+            if (icon) {
+                icon.classList.remove('fas', 'text-red-500');
+                icon.classList.add('far');
+                if (icon.tagName === 'svg') {
+                    icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>';
+                }
+            }
+            delete btn.dataset.wid;
+        });
+
+        // Mark correct ones
+        wishlist.forEach(item => {
+            let selector = '';
+            if (item.itemType === 'CUSTOMIZE_CAKE' && item.customizeCakeId) {
+                selector = `.wishlist-btn[data-id="${item.customizeCakeId}"][data-type="CUSTOMIZE_CAKE"]`;
+            } else if (item.itemType === 'SNACK' && item.snackId) {
+                selector = `.add-to-wishlist[data-id="${item.snackId}"][data-type="SNACK"]`;
+            } else if (item.itemType === 'PRODUCT' && item.productId) {
+                selector = `.wishlist-btn[data-id="${item.productId}"][data-type="PRODUCT"]`;
+            }
+
+            const btn = document.querySelector(selector);
+            if (btn) {
+                btn.classList.add('active');
+                const icon = btn.querySelector('i') || btn.querySelector('svg');
+                if (icon) {
+                    icon.classList.remove('far');
+                    icon.classList.add('fas', 'text-red-500');
+                    if (icon.tagName === 'svg') {
+                        icon.innerHTML = '<path fill="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>';
+                    }
+                }
+                btn.dataset.wid = item.snackId;
+            }
+        });
+
+        await window.apiService.updateWishlistCount();
+    } catch (err) {
+        console.warn('Wishlist refresh failed', err);
+    }
+}
+
+
+function renderProduct(p) {
+    const discount = p.productOldPrice > p.productNewPrice ? Math.round(((p.productOldPrice - p.productNewPrice) / p.productOldPrice) * 100) : 0;
+    
+    // Yeh line sabse important hai — snackId extract karo
+    const snackId = extractSnackId(p.productImageUrl) || null;
+    const itemId = snackId; // Agar snack hai toh snackId, warna skuNumber
+
+    const div = document.createElement('div');
+    div.className = 'bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow relative group';
+    div.innerHTML = `
+        ${discount ? `<div class="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded z-10">${discount}% OFF</div>` : ''}
+        
+        <!-- YEHI CHANGE KAR DENA -->
+        <button class="add-to-wishlist absolute top-3 right-3 p-2 bg-white rounded-full shadow-md hover:bg-red-50 z-10"
+                data-id="${itemId}"
+                data-type="SNACK"
+                data-product='${JSON.stringify(p)}'>
+            <i class="far fa-heart text-lg"></i>
+        </button>
+
+        <img src="${getImageUrl(p.productImageUrl)}" alt="${p.productName}" class="w-full h-48 object-cover" onerror="this.src='https://via.placeholder.com/400x300?text=No+Image'">
+        
+        <div class="p-4">
+            <h3 class="text-lg font-semibold text-gray-800 mb-2 line-clamp-2">${p.productName}</h3>
+            <div class="flex items-center gap-2 mb-3">
+                <span class="text-xl font-bold text-primary">₹${p.productNewPrice}</span>
+                ${p.productOldPrice > p.productNewPrice ? `<span class="text-sm text-gray-500 line-through">₹${p.productOldPrice}</span>` : ''}
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="flex items-center border border-gray-300 rounded-md">
+                    <button class="qty-btn px-3 py-1 text-gray-600 hover:bg-gray-100" data-action="decrease">−</button>
+                    <input type="text" class="qty-input w-12 text-center border-0" value="1" readonly>
+                    <button class="qty-btn px-3 py-1 text-gray-600 hover:bg-gray-100" data-action="increase">+</button>
+                </div>
+                <button class="add-to-cart-btn flex-1 bg-primary hover:bg-secondary text-white px-4 py-2 rounded-md text-sm font-medium flex items-center justify-center gap-1" data-product='${JSON.stringify(p)}'>
+                    <i class="fas fa-shopping-cart"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    // markWishlistedItems();
+    return div;
+}
+
+
+
+    
     function renderSkeleton(n = 12) {
         const grid = document.getElementById('product-grid');
         if (!grid) return;
@@ -229,7 +366,8 @@ document.addEventListener("DOMContentLoaded", async function () {
         `).join('');
     }
 
-    // AB YE FILTER 100% WORKING HAI
+    
+
     function applyFilter(categoryKey) {
         const grid = document.getElementById('product-grid');
         if (!grid) return;
@@ -241,7 +379,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             ? allProducts
             : allProducts.filter(p => {
                 const sub = p.productSubcategory?.trim();
-                return sub && allowedSubcategories.some(val => sub.toLowerCase() === val.toLowerCase());
+                return sub && allowedSubcategories.some(val => sub.toLowerCase().includes(val.toLowerCase()));
             });
 
         if (filtered.length === 0) {
@@ -250,6 +388,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
 
         filtered.forEach(p => grid.appendChild(renderProduct(p)));
+        markWishlistedItems(); // Heart red after filter
     }
 
     async function init() {
@@ -309,9 +448,28 @@ document.addEventListener("DOMContentLoaded", async function () {
         const cart = e.target.closest('.add-to-cart-btn');
         const qty = e.target.closest('.qty-btn');
 
-        if (wish) { e.stopPropagation(); try { toggleWishlist(wish, JSON.parse(wish.dataset.product)); } catch {} }
-        if (cart) { e.stopPropagation(); try { const p = JSON.parse(cart.dataset.product); const q = parseInt(cart.closest('div').querySelector('.qty-input')?.value) || 1; addToCart(p, q); } catch { showToast('Invalid', 'error'); } }
-        if (qty) { e.stopPropagation(); const input = qty.closest('div').querySelector('.qty-input'); let v = parseInt(input.value) || 1; v = qty.dataset.action === 'increase' ? v + 1 : v > 1 ? v - 1 : 1; input.value = v; }
+        if (wish) { 
+            e.stopPropagation(); 
+            try { 
+                const p = JSON.parse(wish.dataset.product); 
+                toggleWishlist(wish, p); 
+            } catch { showToast('Invalid product', 'error'); } 
+        }
+        if (cart) { 
+            e.stopPropagation(); 
+            try { 
+                const p = JSON.parse(cart.dataset.product); 
+                const q = parseInt(cart.closest('div').querySelector('.qty-input')?.value) || 1; 
+                addToCart(p, q); 
+            } catch { showToast('Invalid', 'error'); } 
+        }
+        if (qty) { 
+            e.stopPropagation(); 
+            const input = qty.closest('div').querySelector('.qty-input'); 
+            let v = parseInt(input.value) || 1; 
+            v = qty.dataset.action === 'increase' ? v + 1 : v > 1 ? v - 1 : 1; 
+            input.value = v; 
+        }
     });
 
     function performSearch(q) {
@@ -319,13 +477,22 @@ document.addEventListener("DOMContentLoaded", async function () {
         if (!div || !allProducts.length) return;
         if (!q.trim()) return div.innerHTML = '<p class="text-xs text-gray-500 p-3">Type to search...</p>';
         const results = allProducts.filter(p => p.productName.toLowerCase().includes(q.toLowerCase())).slice(0, 6);
-        div.innerHTML = results.length ? results.map(p => `<a href="/product-details.html?id=${p.skuNumber}" class="flex items-center p-3 border-b border-gray-100 hover:bg-gray-50 text-sm">< unver<i class="fas fa-search text-primary mr-3"></i><div><div class="font-medium text-gray-900">${p.productName}</div><div class="text-xs text-gray-500">Crave Corner</div></div></a>`).join('') : '<p class="text-xs text-gray-500 p-3">No products found</p>';
+        div.innerHTML = results.length ? results.map(p => `<a href="/product-details.html?id=${p.skuNumber}" class="flex items-center p-3 border-b border-gray-100 hover:bg-gray-50 text-sm"><i class="fas fa-search text-primary mr-3"></i><div><div class="font-medium text-gray-900">${p.productName}</div><div class="text-xs text-gray-500">Crave Corner</div></div></a>`).join('') : '<p class="text-xs text-gray-500 p-3">No products found</p>';
     }
 
-    updateWishlistCount();
+    // Start everything
     init();
     window.performSearch = performSearch;
 });
+
+
+
+
+
+
+
+
+
 
 
 

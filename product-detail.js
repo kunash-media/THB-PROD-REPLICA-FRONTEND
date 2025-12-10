@@ -1,7 +1,7 @@
 console.log('[ProductDetailManager] Script loaded');
 
 const API_BASE_URL = 'http://localhost:8082/api/v1';
-const API_BASE_URL_IMG = 'http://localhost:8082';
+const API_BASE_URL_IMG = 'http://localhost:8082';   
 
 class ProductDetailManager {
     constructor() {
@@ -21,6 +21,7 @@ class ProductDetailManager {
         this.loadAddons();
         this.setupEventListeners();
         this.setupPincodeChecker(); // ← ADD THIS LINE
+        this.markWishlistedHeart(); // Heart red on login
     }
 
     getProductId() {
@@ -30,79 +31,100 @@ class ProductDetailManager {
         return id;
     }
 
+
     async loadProduct() {
-        const productId = this.getProductId();
-        console.log(`[ProductDetailManager] Starting product load for ID: ${productId}`);
+    const productId = this.getProductId();
+    console.log(`[ProductDetailManager] Starting product load for ID: ${productId}`);
 
-        try {
-            console.log(`[ProductDetailManager] Checking session storage for product ID: ${productId}`);
-            let partialProduct = null;
-            const sessionData = sessionStorage.getItem('selectedProduct');
-            if (sessionData) {
-                const parsed = JSON.parse(sessionData);
-                if (parsed.id?.toString() === productId) {
-                    console.log(`[ProductDetailManager] Found valid session data for product ID: ${productId}`);
-                    parsed.images = parsed.image ? [parsed.image] : [];
-                    partialProduct = parsed;
-                    this.currentProduct = partialProduct;
-                    this.renderProduct(partialProduct, true);
-                } else {
-                    console.warn(`[ProductDetailManager] Session data product ID (${parsed.id}) does not match requested ID (${productId})`);
-                }
-            } else {
-                console.log(`[ProductDetailManager] No session data found for product ID: ${productId}`);
+    try {
+        let partialProduct = null;
+        const sessionData = sessionStorage.getItem('selectedProduct');
+        if (sessionData) {
+            const parsed = JSON.parse(sessionData);
+            if (parsed.id?.toString() === productId) {
+                console.log(`[ProductDetailManager] Using cached session product data`);
+                parsed.images = parsed.image ? [parsed.image] : [];
+                partialProduct = parsed;
+                this.currentProduct = partialProduct;
+                this.renderProduct(partialProduct, true);
             }
-
-            console.log(`[ProductDetailManager] Initiating API call to: ${API_BASE_URL}/products/${productId}`);
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => {
-                console.warn(`[ProductDetailManager] API request timed out for product ID: ${productId}`);
-                controller.abort();
-            }, 5000);
-
-            const response = await fetch(`${API_BASE_URL}/products/${productId}`, { signal: controller.signal });
-            clearTimeout(timeoutId);
-            console.log(`[ProductDetailManager] API response status: ${response.status}`);
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: Product not found`);
-            }
-
-            const apiData = await response.json();
-            console.log(`[ProductDetailManager] API response data:`, apiData);
-
-            if (!apiData.success || !apiData.data) {
-                throw new Error('Invalid API response: Missing success or data');
-            }
-
-            const productData = apiData.data;
-            if (productData.deleted === true) {
-                throw new Error('Product not available');
-            }
-
-            console.log(`[ProductDetailManager] Mapping API data for product ID: ${productId}`);
-            const mappedProduct = this.mapApiToProduct(productData);
-            this.currentProduct = { ...partialProduct, ...mappedProduct };
-            this.selectedSize = mappedProduct.sizes?.find(s => s.default) || mappedProduct.sizes?.[0];
-
-            console.log(`[ProductDetailManager] Loading related products for category: ${mappedProduct.category}`);
-            await this.loadRelatedProducts(mappedProduct.category, productId);
-
-            console.log(`[ProductDetailManager] Rendering full product data for ID: ${productId}`);
-            this.renderProduct(this.currentProduct);
-            this.hideLoading();
-            // this.updateGlobalCounts();
-
-        } catch (error) {
-            console.error(`[ProductDetailManager] Error loading product ID ${productId}:`, error.message);
-            this.currentProduct = this.getMockProduct();
-            console.log(`[ProductDetailManager] Falling back to mock data for product ID: ${productId}`);
-            this.renderProduct(this.currentProduct, true);
-            this.showError(`Failed to load product details: ${error.message}. Using mock data.`);
-            this.hideLoading();
         }
-    }
 
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+        const response = await fetch(`${API_BASE_URL}/products/${productId}`, {
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            throw new Error(`Product not found (HTTP ${response.status})`);
+        }
+
+        const apiData = await response.json();
+        if (!apiData.success || !apiData.data) {
+            throw new Error('Invalid API response format');
+        }
+
+        const productData = apiData.data;
+        if (productData.deleted === true) {
+            throw new Error('This product has been removed');
+        }
+
+        const mappedProduct = this.mapApiToProduct(productData);
+
+        // Merge session data (like wishlist status) with fresh API data
+        this.currentProduct = { ...partialProduct, ...mappedProduct };
+
+        // === CRITICAL: Select default size and sync price ===
+        this.selectedSize = mappedProduct.sizes?.find(s => s.default) || mappedProduct.sizes?.[0] || null;
+
+        if (this.selectedSize) {
+            this.currentProduct.price = this.selectedSize.price;
+            console.log(`[ProductDetailManager] Default size selected: ${this.selectedSize.label} → ₹${this.selectedSize.price}`);
+        } else if (mappedProduct.sizes?.length > 0) {
+            // Fallback: use first size if no default
+            this.selectedSize = mappedProduct.sizes[0];
+            this.currentProduct.price = this.selectedSize.price;
+            console.log(`[ProductDetailManager] No default size, using first: ${this.selectedSize.label} → ₹${this.selectedSize.price}`);
+        } else {
+            // No sizes → use base price
+            this.currentProduct.price = mappedProduct.price || 0;
+            console.log(`[ProductDetailManager] No sizes available, using base price: ₹${this.currentProduct.price}`);
+        }
+
+        // Load related products
+        await this.loadRelatedProducts(mappedProduct.category, productId);
+
+        // Final render with full data
+        this.renderProduct(this.currentProduct);
+        this.hideLoading();
+
+        // Share product size-price map with cart page
+        localStorage.setItem('lastProductSizes', JSON.stringify(this.currentProduct.sizes));
+
+        console.log(`[ProductDetailManager] Product fully loaded: ${this.currentProduct.name} (₹${this.currentProduct.price}) | Stock: ${this.currentProduct.productQuantity}`);
+
+    } catch (error) {
+        console.error(`[ProductDetailManager] Failed to load product ${productId}:`, error.message);
+
+        // Fallback to mock on error
+        this.currentProduct = this.getMockProduct();
+        this.selectedSize = this.currentProduct.sizes?.[0] || null;
+        if (this.selectedSize) {
+            this.currentProduct.price = this.selectedSize.price;
+        }
+
+        this.renderProduct(this.currentProduct, true);
+        this.hideLoading();
+
+        // Optional: show user-friendly toast
+        this.showNotification?.('Using demo mode – product unavailable', 'warning');
+    }
+}
+
+   
     async loadAddons() {
         console.log('[ProductDetailManager] Fetching add-ons from API');
         try {
@@ -387,7 +409,8 @@ class ProductDetailManager {
                 name: apiProduct.productName || 'Featured Cake',
                 category: apiProduct.productCategory || 'Cakes',
                 foodType: apiProduct.productFoodType || 'Vegetarian',
-                price: apiProduct.productNewPrice || 500,
+                productQuantity: apiProduct.productQuantity ?? 10,
+                price: apiProduct.productNewPrice || 'NA',
                 originalPrice: apiProduct.productOldPrice,
                 rating: apiProduct.ratings || 4.5,
                 reviewCount: apiProduct.reviews || 0,
@@ -471,7 +494,9 @@ class ProductDetailManager {
         this.renderSizes();
         this.renderAddons();
         this.renderTabs();
+        this.updateStockUI();               // <-- Critical stock handling
         if (!isPartial) this.renderRelatedProducts();
+        this.markWishlistedHeart();
     }
 
     renderMainInfo() {
@@ -511,7 +536,7 @@ class ProductDetailManager {
         if (ratingStarsEl) ratingStarsEl.innerHTML = ratingHtml;
 
         const reviewCountEl = document.getElementById('reviewCount');
-        if (reviewCountEl) reviewCountEl.textContent = `(${product.reviewCount} reviews)`;
+        if (reviewCountEl) reviewCountEl.textContent = ``;
 
         this.updatePriceDisplay(totalPrice);
 
@@ -552,6 +577,99 @@ class ProductDetailManager {
         if (mobilePriceEl) mobilePriceEl.textContent = `₹${totalPrice}`;
     }
 
+    //================== NEW PATCH ADDED ===================//
+
+    updateStockUI() {
+    const qty = this.currentProduct?.productQuantity ?? 0;
+
+    const desktopBtn = document.getElementById('addToCartBtn');
+    const mobileBtn = document.getElementById('mobileAddToCart');
+    const buyNowBtn = document.getElementById('buyNowBtn'); // ← This one was being destroyed!
+
+    // Remove any existing stock badge to prevent duplicates
+    document.querySelectorAll('#stockStatusBadge').forEach(el => el.remove());
+
+    // Remove old message if exists
+    const oldStatus = document.getElementById('stockStatus');
+    if (oldStatus) oldStatus.remove();
+
+    // Create fresh stock status element
+    const stockEl = document.createElement('div');
+    stockEl.id = 'stockStatus';
+
+    if (qty === 0) {
+        // OUT OF STOCK
+        stockEl.innerHTML = `<span class="text-red-600 font-bold text-lg">Out of Stock!!</span>`;
+
+        // Only affect Add to Cart buttons — NEVER touch Buy Now
+        [desktopBtn, mobileBtn].forEach(btn => {
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = 'Out of Stock';
+                btn.classList.remove('floral-btn', 'hover:bg-secondary');
+                btn.classList.add('bg-gray-400', 'cursor-not-allowed', 'opacity-60');
+            }
+        });
+
+        // Buy Now stays untouched or disabled gracefully
+        if (buyNowBtn) {
+            buyNowBtn.disabled = true;
+            buyNowBtn.textContent = 'Out of Stock';
+            buyNowBtn.classList.add('opacity-60', 'cursor-not-allowed');
+        }
+
+    } else if (qty <= 5) {
+        // LOW STOCK – Show animated badge
+        stockEl.innerHTML = `
+            <div id="stockStatusBadge" class="inline-block animate-pulse bg-orange-100 text-orange-800 
+                px-6 py-3 rounded-full font-bold text-sm shadow-lg border border-orange-300">
+                <i class="fas fa-fire text-orange-600 mr-2"></i>
+                Only ${qty} left – Order Soon!
+            </div>`;
+
+        // Restore Add to Cart buttons
+        [desktopBtn, mobileBtn].forEach(btn => {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-shopping-cart mr-2"></i> Add to Cart';
+                btn.classList.add('floral-btn');
+                btn.classList.remove('bg-gray-400', 'opacity-60', 'cursor-not-allowed');
+            }
+        });
+
+        // Buy Now stays normal
+        if (buyNowBtn) {
+            buyNowBtn.disabled = false;
+            buyNowBtn.textContent = 'Buy Now'; // ← Keep original text!
+            buyNowBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+        }
+
+    } else {
+        // IN STOCK – Normal state
+        [desktopBtn, mobileBtn].forEach(btn => {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-shopping-cart mr-2"></i> Add to Cart';
+                btn.classList.add('floral-btn');
+                btn.classList.remove('bg-gray-400', 'opacity-60', 'cursor-not-allowed');
+            }
+        });
+
+        // Buy Now normal
+        if (buyNowBtn) {
+            buyNowBtn.disabled = false;
+            buyNowBtn.textContent = 'Buy Now';
+            buyNowBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+        }
+    }
+
+    // Insert badge ABOVE quantity selector (only if not out of stock)
+    const qtySection = document.getElementById('quantity-selector');
+    if (qtySection && qty > 0) {
+        qtySection.before(stockEl);
+    }
+}
+
     renderImages() {
         const product = this.currentProduct;
         if (!product || !product.images || product.images.length === 0) {
@@ -582,62 +700,34 @@ class ProductDetailManager {
         }
     }
 
-    renderSizes() {
-        const product = this.currentProduct;
-        const sizeSelectionEl = document.getElementById('sizeSelection');
-        if (!product || !product.sizes || product.sizes.length === 0 || !sizeSelectionEl) {
-            console.log(`[ProductDetailManager] No sizes to render or sizeSelection element missing`);
-            if (sizeSelectionEl) sizeSelectionEl.classList.add('hidden');
-            return;
-        }
-        console.log(`[ProductDetailManager] Rendering sizes for product: ${product.name}`);
 
-        sizeSelectionEl.classList.remove('hidden');
-        const sizesHtml = product.sizes.map(size => `
-            <button onclick="productManager.selectSize('${size.value}')" 
-                    class="size-option p-4 border rounded-lg text-center text-sm transition-all
-                           ${this.selectedSize?.value === size.value ? 'floweraura-option-active' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'}">
-                <div class="font-semibold">${size.label}</div>
-                <div class="text-primary font-bold mt-1">₹${size.price}</div>
-            </button>
-        `).join('');
-        const sizeOptionsEl = document.getElementById('sizeOptions');
-        if (sizeOptionsEl) sizeOptionsEl.innerHTML = sizesHtml;
+    renderSizes() {
+    const product = this.currentProduct;
+    const sizeSelectionEl = document.getElementById('sizeSelection');
+    if (!product || !product.sizes || product.sizes.length === 0 || !sizeSelectionEl) {
+        console.log(`[ProductDetailManager] No sizes to render`);
+        if (sizeSelectionEl) sizeSelectionEl.classList.add('hidden');
+        return;
     }
 
-    // renderAddons() {
-    //     console.log(`[ProductDetailManager] Rendering add-ons`);
-    //     const addonsContainer = document.querySelector('#addonsSelection .grid');
-    //     if (!addonsContainer) {
-    //         console.error('[ProductDetailManager] Addons container not found');
-    //         return;
-    //     }
-    //     addonsContainer.innerHTML = '';
-    //     this.addonsData.forEach(addon => {
-    //         const count = this.selectedAddons.get(addon.itemKey) || 0;
-    //         const addonCard = `
-    //             <div class="rounded-lg bg-accent p-3 text-center border ${count > 0 ? 'floweraura-option-active' : 'border-gray-200'} addon-card cursor-pointer relative" data-item="${addon.itemKey}" data-price="${addon.price}">
-    //                 <img src="${addon.imageUrl}" alt="${addon.name}" class="w-full h-32 object-cover rounded-lg mb-2 shadow-sm">
-    //                 <p class="text-sm font-semibold text-gray-800">${addon.name}</p>
-    //                 <p class="text-primary font-bold text-lg">₹${addon.price.toFixed(2)}</p>
-    //                 <span id="count-${addon.itemKey}" class="addon-count" style="display: ${count > 0 ? 'flex' : 'none'}">${count}</span>
-    //             </div>
-    //         `;
-    //         addonsContainer.insertAdjacentHTML('beforeend', addonCard);
-    //     });
-    // }
+    console.log(`[ProductDetailManager] Rendering sizes for: ${product.name}`);
+    sizeSelectionEl.classList.remove('hidden');
 
-    // --- Updated for toggle behavior ---
-    // incrementAddon(addonId) {
-    //     console.log(`[ProductDetailManager] Toggling addon: ${addonId}`);
-    //     const currentCount = this.selectedAddons.get(addonId) || 0;
-    //     this.selectedAddons.set(addonId, currentCount === 0 ? 1 : 0);
-    //     this.renderAddons();
-    //     this.renderMainInfo();
-    // }
-    // --- End of changes ---
+    const sizesHtml = product.sizes.map(size => `
+        <button 
+            data-size-value="${size.value}"
+            class="size-option p-4 border rounded-lg text-center text-sm transition-all
+                   ${this.selectedSize?.value === size.value ? 'floweraura-option-active' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'}">
+            <div class="font-semibold">${size.label}</div>
+            <div class="text-primary font-bold mt-1">₹${size.price}</div>
+        </button>
+    `).join('');
 
-
+    const sizeOptionsEl = document.getElementById('sizeOptions');
+    if (sizeOptionsEl) {
+        sizeOptionsEl.innerHTML = sizesHtml;
+    }
+}
 
     renderAddons() {
     console.log(`[ProductDetailManager] Rendering add-ons`);
@@ -791,9 +881,6 @@ incrementAddon(addonId, change) {
         relatedProductsEl.innerHTML = relatedHtml;
     }
 
-
-
-
     async addToCart() {
     if (!this.currentProduct) {
         this.showNotification('No product selected', 'error');
@@ -891,141 +978,6 @@ incrementAddon(addonId, change) {
     }
 }
 
-
-
-    // --- Updated for add-to-cart with button text change ---
-    // async addToCart() {
-    //     if (!this.currentProduct) {
-    //         console.error('[ProductDetailManager] No product to add to cart');
-    //         this.showNotification('No product selected. Please try again.', 'error');
-    //         return;
-    //     }
-    //     console.log('[ProductDetailManager] Adding to cart:', {
-    //         productId: this.currentProduct.id,
-    //         quantity: this.currentQuantity,
-    //         size: this.selectedSize?.value || 'free size',
-    //         addons: Array.from(this.selectedAddons)
-    //     });
-
-    //     const addToCartBtn = document.getElementById('addToCartBtn');
-    //     const mobileAddToCartBtn = document.getElementById('mobileAddToCart');
-    //     if (addToCartBtn && mobileAddToCartBtn) {
-    //         addToCartBtn.classList.add('loading');
-    //         mobileAddToCartBtn.classList.add('loading');
-    //         addToCartBtn.innerHTML = 'Adding...';
-    //         mobileAddToCartBtn.innerHTML = 'Adding...';
-    //     }
-
-    //     try {
-    //         const size = this.selectedSize?.value || 'free size';
-    //         const price = this.selectedSize ? this.selectedSize.price : this.currentProduct.price;
-
-    //        const addonsWithQty = Array.from(this.selectedAddons.entries())
-    // .filter(([_, qty]) => qty > 0)
-    // .map(([addonId, qty]) => {
-    //     const addon = this.addonsData.find(a => a.itemKey === addonId);
-    //     return addon ? { id: Number(addon.id), quantity: qty } : null;
-    // })
-    // .filter(Boolean);
-            
-    //         // const addonIds = Array.from(this.selectedAddons.entries())
-    //         //     .filter(([_, count]) => count > 0)
-    //         //     .map(([addonId]) => {
-    //         //         const addon = this.addonsData.find(a => a.itemKey === addonId);
-    //         //         return addon && Number.isInteger(Number(addon.id)) ? Number(addon.id) : null;
-    //         //     })
-    //         //     .filter(id => id !== null);
-
-
-    //         // Validate addonIds
-    //         if (addonIds.some(id => !Number.isInteger(Number(id)))) {
-    //             throw new Error('Invalid add-on IDs detected');
-    //         }
-
-    //         // For authenticated users, use API with addonIds
-    //         if (window.apiService.getUserId()) {
-    //             const payload = {
-    //                 userId: Number(window.apiService.getUserId()),
-    //                 productId: Number(this.currentProduct.id),
-    //                 quantity: this.currentQuantity,
-    //                 size: size,
-    //                 itemType: "PRODUCT",  // ADDED: itemType for PRODUCT
-    //                 // addonIds: addonIds
-    //                 addons: addonsWithQty
-    //             };
-    //             console.log('[ProductDetailManager] Sending cart payload:', payload);
-    //             await window.apiService.addToCart(payload);
-    //             console.log('[ProductDetailManager] Successfully added to cart via API');
-    //             if (addToCartBtn && mobileAddToCartBtn) {
-    //                 addToCartBtn.innerHTML = 'Added To Cart';
-    //                 mobileAddToCartBtn.innerHTML = 'Added To Cart';
-    //                 addToCartBtn.classList.remove('loading');
-    //                 mobileAddToCartBtn.classList.remove('loading');
-    //                 setTimeout(() => {
-    //                     addToCartBtn.innerHTML = 'Add to Cart';
-    //                     mobileAddToCartBtn.innerHTML = 'Add to Cart';
-    //                 }, 3000);
-    //             }
-    //             this.showNotification('Product and add-ons added to cart!', 'success');
-    //         } else {
-    //             // Guest mode: Add product and add-ons to localStorage
-    //             let cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    //             const existingProduct = cart.find(item => item.id === this.currentProduct.id && item.size === size);
-    //             const addonsForProduct = addonIds.map(addonId => {
-    //                 const addon = this.addonsData.find(a => Number(a.id) === addonId);
-    //                 return addon ? {
-    //                     id: String(addon.id),
-    //                     name: addon.name.charAt(0).toUpperCase() + addon.name.slice(1),
-    //                     price: addon.price,
-    //                     image: addon.imageUrl || ''
-    //                 } : null;
-    //             }).filter(addon => addon !== null);
-
-    //             if (existingProduct) {
-    //                 existingProduct.quantity = this.currentQuantity;
-    //                 existingProduct.addons = addonsForProduct;
-    //             } else {
-    //                 cart.push({
-    //                     id: this.currentProduct.id,
-    //                     name: this.currentProduct.name,
-    //                     price: price,
-    //                     quantity: this.currentQuantity,
-    //                     size: size,
-    //                     image: this.currentProduct.images[0] || '',
-    //                     itemType: "PRODUCT",  // ADDED: itemType in localStorage
-    //                     addons: addonsForProduct
-    //                 });
-    //             }
-
-    //             localStorage.setItem('cart', JSON.stringify(cart));
-    //             console.log('[ProductDetailManager] Updated localStorage cart:', cart);
-    //             if (addToCartBtn && mobileAddToCartBtn) {
-    //                 addToCartBtn.innerHTML = 'Added To Cart';
-    //                 mobileAddToCartBtn.innerHTML = 'Added To Cart';
-    //                 addToCartBtn.classList.remove('loading');
-    //                 mobileAddToCartBtn.classList.remove('loading');
-    //                 setTimeout(() => {
-    //                     addToCartBtn.innerHTML = 'Add to Cart';
-    //                     mobileAddToCartBtn.innerHTML = 'Add to Cart';
-    //                 }, 3000);
-    //             }
-    //             this.showNotification('Product and add-ons added to cart!', 'success');
-    //         }
-
-    //         window.apiService.updateGlobalCounts();
-    //     } catch (error) {
-    //         console.error('[ProductDetailManager] Error adding to cart:', error);
-    //         if (addToCartBtn && mobileAddToCartBtn) {
-    //             addToCartBtn.innerHTML = 'Add to Cart';
-    //             mobileAddToCartBtn.innerHTML = 'Add to Cart';
-    //             addToCartBtn.classList.remove('loading');
-    //             mobileAddToCartBtn.classList.remove('loading');
-    //         }
-    //         this.showNotification(`Failed to add to cart: ${error.message || 'Please try again.'}`, 'error');
-    //     }
-    // }
-    // --- End of changes ---
-
     buyNow() {
         console.log(`[ProductDetailManager] Initiating buy now`);
         this.addToCart();
@@ -1046,19 +998,23 @@ incrementAddon(addonId, change) {
         }
     }
 
+    // showNotification(message, type = 'info') {
+    //     console.log(`[ProductDetailManager] Showing notification: ${message} (${type})`);
+    //     const notification = document.createElement('div');
+    //     notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg text-white ${
+    //         type === 'success' ? 'bg-green-500' : 
+    //         type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+    //     }`;
+    //     notification.textContent = message;
+    //     document.body.appendChild(notification);
+    //     setTimeout(() => {
+    //         notification.remove();
+    //     }, 3000);
+    // }
+
     showNotification(message, type = 'info') {
-        console.log(`[ProductDetailManager] Showing notification: ${message} (${type})`);
-        const notification = document.createElement('div');
-        notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg text-white ${
-            type === 'success' ? 'bg-green-500' : 
-            type === 'error' ? 'bg-red-500' : 'bg-blue-500'
-        }`;
-        notification.textContent = message;
-        document.body.appendChild(notification);
-        setTimeout(() => {
-            notification.remove();
-        }, 3000);
-    }
+    this.showToast(message, type);
+}
 
     showLoading() {
         console.log(`[ProductDetailManager] Showing skeleton loader`);
@@ -1144,49 +1100,190 @@ incrementAddon(addonId, change) {
         this.currentImageIndex = index;
     }
 
-    selectSize(sizeValue) {
-        const product = this.currentProduct;
-        if (!product || !product.sizes) {
-            console.error(`[ProductDetailManager] No sizes available for size selection`);
+
+    selectSize(val) {
+        const selected = this.currentProduct.sizes.find(s => s.value === val);
+        if (!selected) {
+            console.warn(`[ProductDetailManager] Size not found: ${val}`);
             return;
         }
-        console.log(`[ProductDetailManager] Selecting size: ${sizeValue}`);
-        this.selectedSize = product.sizes.find(s => s.value === sizeValue);
-        this.renderMainInfo();
-        this.renderSizes();
+
+        this.selectedSize = selected;
+        this.currentProduct.price = selected.price;
+
+        console.log(`[ProductDetailManager] Size selected: ${selected.label} → ₹${selected.price}`);
+
+        // Force re-render with microtask to avoid race condition
+        setTimeout(() => {
+            this.renderMainInfo();
+            this.renderSizes();
+            this.updateStockUI();
+        }, 0);
     }
 
-    localToggleWishlist(button, productId) {
-        console.log(`[ProductDetailManager] Toggling wishlist for product ID: ${productId}`);
-        let wishlistDetails = JSON.parse(localStorage.getItem('wishlistDetails') || '[]');
-        const product = this.currentProduct;
-        const isInWishlist = wishlistDetails.some(item => item.id === productId);
 
-        if (isInWishlist) {
-            wishlistDetails = wishlistDetails.filter(item => item.id !== productId);
-            if (button) {
-                button.innerHTML = 'Wishlist';
-                button.classList.remove('text-red-500');
+
+   // ==================== TOASTIFY NOTIFICATION (CLASS KE ANDAR DAAL DE) ====================
+showToast(message, type = 'success') {
+    let background = '#10b981'; // green
+    if (type === 'error') background = '#ef4444';
+    if (type === 'warning') background = '#f59e0b';
+    if (type === 'info') background = '#3b82f6';
+
+    Toastify({
+        text: message,
+        duration: 3500,
+        close: true,
+        gravity: "center",
+        position: "center",
+        stopOnFocus: true,
+        style: {
+            background: background,
+            borderRadius: "16px",
+            padding: "20px 32px",
+            fontSize: "18px",
+            fontWeight: "bold",
+            boxShadow: "0 15px 35px rgba(0,0,0,0.3)",
+            textAlign: "center"
+        }
+    }).showToast();
+}
+
+// ==================== BACKEND WISHLIST - FINAL & PERFECT ====================
+async toggleWishlistBackend(btn, productId, itemType = 'PRODUCT') {
+    event.stopPropagation();
+
+    if (!window.apiService?.getUserId()) {
+        this.showToast("Please login to add to wishlist", "warning");
+        setTimeout(() => window.location.href = '/login.html', 1500);
+        return;
+    }
+
+    const isActive = btn.classList.contains('active');
+
+    try {
+        if (isActive) {
+            // REMOVE — ab sahi tarike se itemType bhej raha hai
+            await window.apiService.removeFromWishlist(productId, itemType);
+
+            // UI update
+            btn.classList.remove('active');
+            btn.innerHTML = `<i class="far fa-heart text-lg"></i>`;
+            btn.dataset.wid = '';
+            this.showToast('Removed from wishlist', 'success');
+
+            // Optional: force heart refresh
+            if (typeof this.markWishlistedHeart === 'function') {
+                this.markWishlistedHeart();
             }
-            this.showNotification('Removed from wishlist!', 'success');
+
         } else {
-            wishlistDetails.push({
-                id: product.id,
-                name: product.name,
-                price: product.price,
-                image: product.images[0] || '',
-                category: product.category
+            // ADD
+            await window.apiService.addToWishlist(productId, itemType);
+
+            btn.classList.add('active');
+            btn.innerHTML = `<i class="fas fa-heart text-red-500 text-lg"></i>`;
+            this.showToast('Added to wishlist', 'success');
+
+            // Get correct wishlistItemId using itemType
+            const list = await window.apiService.getWishlist();
+            const item = list.find(i => {
+                if (itemType === 'CUSTOMIZE_CAKE') return i.customizeCakeId == productId;
+                if (itemType === 'SNACK') return i.snackId == productId;
+                return i.productId == productId;
             });
-            if (button) {
-                button.innerHTML = 'Remove from Wishlist';
-                button.classList.add('text-red-500');
+
+            if (item?.wishlistItemId) {
+                btn.dataset.wid = item.wishlistItemId;
             }
-            this.showNotification('Added to wishlist!', 'success');
         }
 
-        localStorage.setItem('wishlistDetails', JSON.stringify(wishlistDetails));
-        this.updateGlobalCounts();
+        await window.apiService.updateWishlistCount();
+
+    } catch (err) {
+        console.error('Wishlist error:', err);
+        this.showToast('Failed to update wishlist', 'error');
     }
+}
+
+// ==================== AUTO MARK HEART RED ON PAGE LOAD & AFTER RENDER ====================
+async markWishlistedHeart() {
+    if (!window.apiService?.getUserId() || !this.currentProduct) return;
+
+    const btn = document.getElementById('wishlistBtn');
+    if (!btn) return;
+
+    try {
+        const wishlist = await window.apiService.getWishlist();
+        const currentId = Number(this.currentProduct.id);
+
+        // Pehle heart clear kar do (important!)
+        btn.classList.remove('active');
+        btn.innerHTML = `<i class="far fa-heart text-lg"></i>`;
+        btn.dataset.wid = '';
+        btn.dataset.type = 'PRODUCT'; // ya jo bhi page hai uske hisaab se
+
+        // Ab check karo ki yeh item wishlist mein hai ya nahi
+        const item = wishlist.find(w => {
+            return (
+                (w.itemType === 'CUSTOMIZE_CAKE' && w.customizeCakeId == currentId) ||
+                (w.itemType === 'PRODUCT' && w.productId == currentId) ||
+                (w.itemType === 'SNACK' && w.snackId == currentId)
+            );
+        });
+
+        if (item) {
+            btn.classList.add('active');
+            btn.innerHTML = `<i class="fas fa-heart text-red-500 text-lg"></i>`;
+            btn.dataset.wid = item.wishlistItemId || '';
+            console.log('%cHeart marked RED for ID:', 'color: #ef4444; font-weight: bold;', currentId, item.itemType);
+        } else {
+            console.log('%cHeart remains white for ID:', 'color: #6b7280;', currentId);
+        }
+
+    } catch (err) {
+        console.warn('Wishlist heart update failed (CORS safe)', err);
+        // Fail hone pe bhi UI safe rakho
+        btn.innerHTML = `<i class="far fa-heart text-lg"></i>`;
+    }
+}
+
+
+
+    // localToggleWishlist(button, productId) {
+    //     console.log(`[ProductDetailManager] Toggling wishlist for product ID: ${productId}`);
+    //     let wishlistDetails = JSON.parse(localStorage.getItem('wishlistDetails') || '[]');
+    //     const product = this.currentProduct;
+    //     const isInWishlist = wishlistDetails.some(item => item.id === productId);
+
+    //     if (isInWishlist) {
+    //         wishlistDetails = wishlistDetails.filter(item => item.id !== productId);
+    //         if (button) {
+    //             button.innerHTML = 'Wishlist';
+    //             button.classList.remove('text-red-500');
+    //         }
+    //         this.showNotification('Removed from wishlist!', 'success');
+    //     } else {
+    //         wishlistDetails.push({
+    //             id: product.id,
+    //             name: product.name,
+    //             price: product.price,
+    //             image: product.images[0] || '',
+    //             category: product.category
+    //         });
+    //         if (button) {
+    //             button.innerHTML = 'Remove from Wishlist';
+    //             button.classList.add('text-red-500');
+    //         }
+    //         this.showNotification('Added to wishlist!', 'success');
+    //     }
+
+    //     localStorage.setItem('wishlistDetails', JSON.stringify(wishlistDetails));
+    //     this.updateGlobalCounts();
+    // }
+
+    
+
 
     // --- Updated for event delegation ---
     setupEventListeners() {
@@ -1230,7 +1327,7 @@ incrementAddon(addonId, change) {
                 e.stopPropagation();
                 const product = this.currentProduct;
                 console.log(`[ProductDetailManager] Toggling wishlist for product ID: ${product.id}`);
-                this.localToggleWishlist(wishlistBtnEl, product.id);
+               this.toggleWishlistBackend(wishlistBtnEl, product.id, 'PRODUCT');
             });
         }
 
@@ -1248,6 +1345,21 @@ incrementAddon(addonId, change) {
                 }
             });
         }
+
+        // Add this inside setupEventListeners() — right after other listeners
+        const sizeOptionsContainer = document.getElementById('sizeOptions');
+        if (sizeOptionsContainer) {
+            sizeOptionsContainer.addEventListener('click', (e) => {
+                const btn = e.target.closest('button[data-size-value]');
+                if (btn) {
+                    const sizeValue = btn.dataset.sizeValue;
+                    console.log(`[ProductDetailManager] Size button clicked: ${sizeValue}`);
+                    this.selectSize(sizeValue);
+                }
+            });
+        }
+
+        
     }
     // --- End of changes ---
 }

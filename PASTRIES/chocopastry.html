@@ -7,6 +7,11 @@
     <link rel="icon" type="image/png" href="/IMG/LOGO_1-removebg-preview.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
+      <!-- Toastify CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
+<!-- Toastify JS (end of body) -->
+<script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -128,9 +133,12 @@
     </style>
 </head>
 <body class="bg-white">
+    
+    
+    
 
 <!-- First Navbar (Top) -->
-<nav class="sticky top-0 z-50 flex items-center justify-between px-3 py-2 md:px-8 md:py-4 text-white bg-primary">
+<nav class="sticky top-0 z-50 flex items-center justify-between px-3 py-2 md:px-8 md:py-6 text-white bg-primary">
     <div class="flex items-center">
         <span class="text-xs sm:text-sm md:text-base">Welcome To The Home Bakery</span>
         <div class="flex flex-col items-center ml-2">
@@ -139,24 +147,24 @@
             </div>
         </div>
     </div>
-    <div class="flex items-center space-x-2">
-        <i class="fas fa-map-marker-alt text-white text-xs sm:text-sm"></i>
-        <div class="flex flex-col">
-            <span class="text-[10px] sm:text-xs text-white">Deliver to</span>
-            <button id="deliveryLocationBtn" class="text-xs sm:text-sm font-medium text-white hover:text-gray-300 transition-colors duration-300 flex items-center">
-                <span id="selectedLocation" class="max-w-[80px] sm:max-w-none truncate">Select Location</span>
-                <i class="fas fa-chevron-down ml-1 text-xs"></i>
-            </button>
-        </div>
-    </div>
+    <!--<div class="flex items-center space-x-2">-->
+    <!--    <i class="fas fa-map-marker-alt text-white text-xs sm:text-sm"></i>-->
+    <!--    <div class="flex flex-col">-->
+    <!--        <span class="text-[10px] sm:text-xs text-white">Deliver to</span>-->
+    <!--        <button id="deliveryLocationBtn" class="text-xs sm:text-sm font-medium text-white hover:text-gray-300 transition-colors duration-300 flex items-center">-->
+    <!--            <span id="selectedLocation" class="max-w-[80px] sm:max-w-none truncate">Select Location</span>-->
+    <!--            <i class="fas fa-chevron-down ml-1 text-xs"></i>-->
+    <!--        </button>-->
+    <!--    </div>-->
+    <!--</div>-->
 </nav>
 
 <!-- Second Navbar (Main) -->
-<nav class="sticky top-12 sm:top-14 md:top-16 z-40 lg:px-8 bg-white shadow-lg border-b border-gray-100">
+<nav class="sticky top-8 sm:top-14 md:top-16 z-40 lg:px-8 bg-white shadow-lg border-b border-gray-100">
     <div class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
         <div class="flex justify-between items-center h-16 sm:h-20 md:h-24">
             <div class="flex-shrink-0">
-                <img src="/IMG/nohat_bg_removed_8c9aa728.png" alt="The Home Bakery Logo" class="h-10 w-12 sm:h-12 sm:w-14 md:h-16 md:w-20 transition-transform duration-300 hover:scale-105">
+                <img src="/IMG/nohat_bg_removed_8c9aa728.png" alt="The Home Bakery Logo" class="h-10 w-12 sm:h-12 sm:w-14 md:h-16 md:w-14 transition-transform duration-300 hover:scale-105">
             </div>
             <div class="hidden lg:flex items-center space-x-2">
                 <a href="/home.html" class="px-3 py-2 text-base font-medium text-black hover:text-primary hover:bg-gray-50 rounded-lg transition-all duration-200">Home</a>
@@ -180,7 +188,7 @@
                 <div class="relative group">
                     <a href="/PASTRIES/chocopastry.html" class="flex items-center px-3 py-2 text-base font-medium text-black hover:text-primary hover:bg-gray-50 rounded-lg transition-all duration-200">
                         Pastries
-                        <i class="fas fa-chevron-down ml-1 text-xs transition-transform duration-300 group-hover:rotate-180"></i>
+                        <!--<i class="fas fa-chevron-down ml-1 text-xs transition-transform duration-300 group-hover:rotate-180"></i>-->
                     </a>
                 </div>
                 <a href="/CUSTOM/custom.html" class="px-3 py-2 text-base font-medium text-black hover:text-primary hover:bg-gray-50 rounded-lg">Customisation</a>
@@ -195,27 +203,23 @@
                         <i class="fas fa-search text-base sm:text-lg"></i>
                         <span class="hidden sm:block text-xs mt-1">Search</span>
                     </a>
+                    
+                    
                     <div class="relative flex flex-col items-center p-1 text-black hover:text-primary group">
                         <a href="#" class="flex flex-col items-center">
                             <i class="fas fa-user text-base sm:text-lg"></i>
-                            <span class="hidden sm:block text-xs mt-1">Profile</span>
+                           <span class="hidden sm:block text-xs mt-1">Profile</span>
                         </a>
+                       
+                        <!-- Dropdown Menu -->
                         <div class="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 border border-[#660B05] w-48 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 overflow-hidden">
                             <div class="dropdown-content py-1">
-                                <!-- Populated by JS -->
+                                <!-- Dynamic content will be populated by JS -->
                             </div>
                         </div>
                     </div>
-                    <div id="logoutModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 hidden">
-                        <div class="bg-white rounded-2xl p-6 max-w-sm w-full mx-5 shadow-2xl text-center">
-                            <h3 class="text-xl font-bold text-gray-900 mb-4">Logout?</h3>
-                            <p class="text-sm text-gray-600 mb-6">Are you sure you want to logout?</p>
-                            <div class="flex justify-center space-x-3">
-                                <button id="modalCancel" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-xl transition-colors">Cancel</button>
-                                <button id="modalConfirm" class="px-4 py-2 text-sm font-medium text-white bg-[#660B05] hover:bg-[#4E1F00] rounded-xl transition-colors">Logout</button>
-                            </div>
-                        </div>
-                    </div>
+                    
+                    
                     <a href="/wishlist.html" class="relative flex flex-col items-center p-0 text-black hover:text-primary">
                         <i class="fas fa-heart text-base sm:text-lg"></i>
                         <span class="hidden sm:block text-xs mt-1">Wishlist</span>
@@ -256,26 +260,38 @@
             <div class="space-y-0">
                 <button id="mobilePastriesToggle" class="w-full flex items-center justify-between px-4 py-3 text-sm sm:text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg">
                     Pastries
-                    <i class="fas fa-chevron-down text-xs transition-transform duration-300"></i>
+                    <!--<i class="fas fa-chevron-down text-xs transition-transform duration-300"></i>-->
                 </button>
                 <div id="mobilePastriesMenu" class="hidden bg-gray-50 border border-gray-200 rounded-lg overflow-hidden mt-1">
-                    <div class="p-4 space-y-2">
-                        <ul class="space-y-1 text-xs">
-                            <li><a href="/PASTRIES/chocopastry.html" class="block px-3 py-2 text-gray-800 hover:text-primary hover:bg-white rounded-md">All Pastries</a></li>
-                            <li><a href="/PASTRIES/chocopastry.html" class="block px-3 py-2 text-gray-800 hover:text-primary hover:bg-white rounded-md">Chocolate Pastries</a></li>
-                            <li><a href="/PASTRIES/chocopastry.html" class="block px-3 py-2 text-gray-800 hover:text-primary hover:bg-white rounded-md">Fruit Pastries</a></li>
-                        </ul>
-                    </div>
+                    <!--<div class="p-4 space-y-2">-->
+                    <!--    <ul class="space-y-1 text-xs">-->
+                    <!--        <li><a href="/PASTRIES/chocopastry.html" class="block px-3 py-2 text-gray-800 hover:text-primary hover:bg-white rounded-md">All Pastries</a></li>-->
+                    <!--        <li><a href="/PASTRIES/chocopastry.html" class="block px-3 py-2 text-gray-800 hover:text-primary hover:bg-white rounded-md">Chocolate Pastries</a></li>-->
+                    <!--        <li><a href="/PASTRIES/chocopastry.html" class="block px-3 py-2 text-gray-800 hover:text-primary hover:bg-white rounded-md">Fruit Pastries</a></li>-->
+                    <!--    </ul>-->
+                    <!--</div>-->
                 </div>
             </div>
             <a href="/CUSTOM/custom.html" class="block px-4 py-3 text-sm sm:text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg">Customisation</a>
             <a href="/SIDEBY/sideby.html" class="block px-4 py-3 text-sm sm:text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg">Crave Corner</a>
-            <a href="#" class="block px-4 py-3 text-sm sm:text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg">Track Order</a>
+            <a href="/MY ORDERS/myorders.html" class="block px-4 py-3 text-sm sm:text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg">My Order</a>
             <a href="/contact.html" class="block px-4 py-3 text-sm sm:text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg">Contact Us</a>
             <a href="/about.html" class="block px-4 py-3 text-sm sm:text-base font-medium text-gray-700 hover:text-primary hover:bg-gray-50 rounded-lg">About Us</a>
         </div>
     </div>
 </nav>
+
+
+   <div id="logoutModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl p-6 max-w-sm w-full mx-5 shadow-2xl text-center">
+            <h3 class="text-xl font-bold text-gray-900 mb-4">Logout?</h3>
+            <p class="text-sm text-gray-600 mb-6">Are you sure you want to logout?</p>
+            <div class="flex justify-center space-x-3">
+                <button id="modalCancel" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 hover:bg-gray-50 rounded-xl transition-colors">Cancel</button>
+                <button id="modalConfirm" class="px-4 py-2 text-sm font-medium text-white bg-[#660B05] hover:bg-[#4E1F00] rounded-xl transition-colors">Logout</button>
+            </div>
+        </div>
+    </div>
 
 <!-- Delivery Location Modal -->
 <div id="deliveryModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
@@ -319,7 +335,7 @@
 
 <!-- Search Overlay -->
 <div id="searchOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-2 sm:p-4">
-    <div class="bg-white rounded-lg p-4 sm:p-6 w-full max-w-sm sm:max-w-md md:max-w-lg transform transition-all duration-300 scale-95 max-h-[90vh] overflow-y-auto">
+    <div class="bg-white rounded-lg h-[400px] p-4 sm:p-6 w-full max-w-sm sm:max-w-md md:max-w-lg transform transition-all duration-300 scale-95 max-h-[90vh] overflow-y-auto">
         <div class="flex justify-between items-center mb-4">
             <h3 class="text-base sm:text-lg font-semibold text-gray-800">Search Products</h3>
             <button id="closeSearch" class="text-gray-500 hover:text-gray-700 transition-colors">
@@ -523,7 +539,7 @@
     <div class="max-w-7xl mx-auto">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 text-center md:text-left">
             <div class="flex flex-col items-center md:items-start">
-                <!-- <h3 class="text-primary font-bold text-xl mb-2">The Home Bakery</h3> -->
+               <!-- <h3 class="text-primary font-bold text-xl mb-2">The Home Bakery</h3> -->
                     <img src="https://thehomebakerypune.com/IMG/nohat_bg_removed_8c9aa728.png"
                         alt="The Home Bakery Logo" class="ml-5 mb-5 max-w-20" onerror="this.style.display='none'">
                       <p class="text-sm mb-4">We bake happiness into every product.</p>
@@ -535,7 +551,7 @@
                     <a href="https://www.instagram.com/the_home_bakery_pune?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank" class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white hover:bg-secondary transition-colors">
                         <i class="fab fa-instagram"></i>
                     </a>
-                    <a href="https://wa.me/919503464162?text=Hi%20The%20Home%20Bakery%2C%20I%20would%20like%20to%20know%20more%20about%20your%20products" target="_blank" class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white hover:bg-secondary transition-colors">
+                    <a href="https://wa.me/9537999898?text=Hi%20The%20Home%20Bakery%2C%20I%20would%20like%20to%20know%20more%20about%20your%20products" target="_blank" class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white hover:bg-secondary transition-colors">
                         <i class="fab fa-whatsapp"></i>
                     </a>
                 </div>
@@ -593,13 +609,34 @@
     <button id="scrollToTop" class="w-12 h-12 bg-primary hover:bg-secondary rounded-full shadow-lg flex items-center justify-center text-white transition-all duration-400 transform hover:scale-110 opacity-0 invisible">
         <i class="fas fa-arrow-up text-lg"></i>
     </button>
-    <a href="https://wa.me/919503464162" target="_blank" class="w-12 h-12 bg-green-500 hover:bg-green-600 rounded-full shadow-lg flex items-center justify-center text-white transition-all duration-400 transform hover:scale-110">
+    <a href="https://wa.me/9537999898" target="_blank" class="w-12 h-12 bg-green-500 hover:bg-green-600 rounded-full shadow-lg flex items-center justify-center text-white transition-all duration-400 transform hover:scale-110">
         <i class="fab fa-whatsapp text-lg"></i>
     </a>
 </div>
+<script src="./pastry.js?v=1.0.6"></script>
+<script src="../api-service.js?v=1.0.8"></script>
+<script src="../index.js?v=1.1.1"></script>
+<script>
+    window.showLogoutModal = function () {
+        const modal = document.getElementById('logoutModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+    };
 
-<script src="./pastry.js"></script>
-<script src="../api-service.js" ></script>
-<script src="../index.js"></script>
+    window.hideLogoutModal = function () {
+        const modal = document.getElementById('logoutModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    };
+
+    window.performLogout = () => {
+        localStorage.clear(); 
+        window.location.reload();
+    };
+    </script>
 </body>
 </html>

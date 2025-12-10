@@ -1,9 +1,7 @@
 // ========================================
-// checkout.js – ULTIMATE FINAL VERSION
-// Addon Qty Working | Gift Fixed | Razorpay Working | All Original Flow Intact
+// checkout.js – ULTIMATE FINAL VERSION + RAZORPAY DELIVERY FIX
+// Delivery charge now included in Razorpay amount too!
 // ========================================
-
-// console.log('%c checkout.js LOADED – FINAL BANGER VERSION', 'color: #ff1493; font-size: 20px; font-weight: bold;');
 
 const API_BASE = 'http://localhost:8082';
 let userSession = null;
@@ -16,6 +14,7 @@ let discount = 0;
 let orderType = 'own';
 let giftDetails = null;
 let fp;
+let sizePriceMap = {}; // Will store { "2kg": 400, "1kg": 200, ... } for all products in cart
 
 const RAZORPAY_KEY = 'rzp_live_RVdM6AniDvOBOH';
 
@@ -175,8 +174,12 @@ document.getElementById("customDateBtn")?.addEventListener("click", () => {
 });
 
 // ==================== PRESERVE ORDER + NORMALIZE ====================
+
 function normalizeWithPreservedOrder(rawData) {
     if (!Array.isArray(rawData)) return [];
+
+    // Rebuild sizePriceMap from current cart items (most accurate)
+    sizePriceMap = {};
 
     return rawData.map(item => {
         const existingItem = cartItems.find(i => i.cartItemId === String(item.cartItemId));
@@ -209,12 +212,29 @@ function normalizeWithPreservedOrder(rawData) {
                 imageUrl: a.imageUrl?.startsWith("http") ? a.imageUrl : (a.imageUrl ? API_BASE + a.imageUrl : "/IMG/addon-placeholder.png")
             }));
 
+        // FIX: Get correct price from stored size map (from product detail → cart)
+        let correctPrice = Number(item.price) || 0;
+
+        if (item.size && item.size !== "Standard") {
+            const saved = localStorage.getItem('lastProductSizes');
+            if (saved) {
+                try {
+                    const sizes = JSON.parse(saved);
+                    const matched = sizes.find(s => s.value === item.size || s.label.includes(item.size));
+                    if (matched && matched.price) {
+                        correctPrice = Number(matched.price);
+                        sizePriceMap[item.size] = correctPrice; // cache it
+                    }
+                } catch(e) {}
+            }
+        }
+
         return {
             cartItemId: String(item.cartItemId),
-            productId: item.productId || null,        // ← YEH ADD KIYA
-            snackId: item.snackId || null,            // ← YE BHI ADD KIYA
+            productId: item.productId || null,
+            snackId: item.snackId || null,
             title: item.title || "Product",
-            price: Number(item.price) || 0,
+            price: correctPrice,  // THIS IS NOW CORRECT PRICE BASED ON SIZE
             imageUrl: item.imageUrl?.startsWith("http") ? item.imageUrl : (item.imageUrl ? API_BASE + item.imageUrl : "/IMG/placeholder.png"),
             quantity: Number(item.quantity) || 1,
             size: item.size || "Standard",
@@ -222,6 +242,57 @@ function normalizeWithPreservedOrder(rawData) {
         };
     });
 }
+
+
+
+// function normalizeWithPreservedOrder(rawData) {
+//     if (!Array.isArray(rawData)) return [];
+
+//     return rawData.map(item => {
+//         const existingItem = cartItems.find(i => i.cartItemId === String(item.cartItemId));
+//         const preservedAddons = existingItem?.addons || [];
+
+//         const serverAddonsMap = (item.addons || []).reduce((acc, a) => {
+//             acc[String(a.id)] = a;
+//             return acc;
+//         }, {});
+
+//         const finalAddons = preservedAddons.length > 0
+//             ? preservedAddons.map(old => {
+//                 const serverAddon = serverAddonsMap[old.id];
+//                 if (serverAddon) {
+//                     return {
+//                         id: old.id,
+//                         name: serverAddon.name || old.name,
+//                         price: Number(serverAddon.price) || old.price,
+//                         quantity: Number(serverAddon.quantity) || old.quantity,
+//                         imageUrl: serverAddon.imageUrl?.startsWith("http") ? serverAddon.imageUrl : (serverAddon.imageUrl ? API_BASE + serverAddon.imageUrl : old.imageUrl)
+//                     };
+//                 }
+//                 return old;
+//             })
+//             : (item.addons || []).map(a => ({
+//                 id: String(a.id),
+//                 name: a.name || "Addon",
+//                 price: Number(a.price) || 0,
+//                 quantity: Number(a.quantity || 1),
+//                 imageUrl: a.imageUrl?.startsWith("http") ? a.imageUrl : (a.imageUrl ? API_BASE + a.imageUrl : "/IMG/addon-placeholder.png")
+//             }));
+
+//         return {
+//             cartItemId: String(item.cartItemId),
+//             productId: item.productId || null,
+//             snackId: item.snackId || null,
+//             title: item.title || "Product",
+//             price: Number(item.price) || 0,
+//             imageUrl: item.imageUrl?.startsWith("http") ? item.imageUrl : (item.imageUrl ? API_BASE + item.imageUrl : "/IMG/placeholder.png"),
+//             quantity: Number(item.quantity) || 1,
+//             size: item.size || "Standard",
+//             addons: finalAddons.filter(a => a.quantity > 0)
+//         };
+//     });
+// }
+
 // ==================== CART FUNCTIONS ====================
 async function fetchCartItems() {
     if (!user) return;
@@ -349,7 +420,7 @@ document.addEventListener('click', async (e) => {
     }
 });
 
-// ==================== ADDRESS FUNCTIONS (FULLY ORIGINAL) ====================
+// ==================== ADDRESS FUNCTIONS ====================
 async function fetchAddresses() {
     if (!user) return;
     try {
@@ -471,7 +542,7 @@ async function saveAddress() {
     }
 }
 
-// ==================== GIFT ORDER – FULLY WORKING ====================
+// ==================== GIFT ORDER ====================
 function renderGiftDetails() {
     const existing = document.getElementById('giftSummaryCard');
     if (existing) existing.remove();
@@ -536,21 +607,28 @@ document.getElementById('saveGiftDetails')?.addEventListener('click', () => {
 
 // ==================== SUMMARY ====================
 function updateSummary() {
-    const subTotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity) + item.addons.reduce((s, a) => s + a.price * a.quantity, 0), 0);
-    const tax = Math.round(subTotal * 0.05);
-    let deliveryCharge = 0;
-    let deliveryLabel = subTotal > 500 ? "FREE" : "₹40";
 
+    // const subTotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity) + item.addons.reduce((s, a) => s + a.price * a.quantity, 0), 0);
+    
+    const subTotal = cartItems.reduce((sum, item) => {
+    const itemPrice = item.price; // Already corrected in normalizeWithPreservedOrder
+    const addonTotal = item.addons.reduce((s, a) => s + a.price * a.quantity, 0);
+    return sum + (itemPrice * item.quantity) + addonTotal; }, 0);
+    
+    const tax = Math.round(subTotal * 0.05);
+
+    let deliveryCharge = 0;
     if (selectedAddress?.shippingPincode) {
         const info = getDeliveryInfo(selectedAddress.shippingPincode);
         deliveryCharge = info.charge !== null ? info.charge : 0;
-        deliveryLabel = info.charge === null ? `<span style="color:#c00; font-weight:600">${info.label}</span>` : info.label;
     }
 
     const total = subTotal + deliveryCharge + tax - discount;
 
     const el = document.getElementById('orderSummary');
     if (!el) return;
+
+    const deliveryLabel = deliveryCharge === 0 ? 'Free Delivery' : `₹${deliveryCharge}`;
 
     el.innerHTML = `
         <div class="flex justify-between py-1"><span>Subtotal</span><span>₹${subTotal.toLocaleString('en-IN')}</span></div>
@@ -568,7 +646,7 @@ function updateSummary() {
     }
 }
 
-// ==================== PAYMENT & ORDER (FULLY ORIGINAL) ====================
+// ==================== PAYMENT & ORDER ====================
 async function clearCart() {
     try {
         await fetch(`${API_BASE}/api/cart/clear-cart`, {
@@ -656,6 +734,12 @@ async function createOrderOnBackend(razorpayOrderId = null) {
     const now = new Date();
     const localDateTime = now.toISOString().slice(0, 19).replace('T', ' ');
 
+    let deliveryCharge = 0;
+    if (selectedAddress.shippingPincode) {
+        const info = getDeliveryInfo(selectedAddress.shippingPincode);
+        deliveryCharge = info.charge !== null ? info.charge : 0;
+    }
+
     const payload = {
         userId: user.userId,
         shippingAddress: `${selectedAddress.houseNo}, ${selectedAddress.streetArea}`,
@@ -680,8 +764,9 @@ async function createOrderOnBackend(razorpayOrderId = null) {
         orderDateTime: localDateTime,
         deliveryDateTime: display,
         orderType: orderType === 'gift' ? 'gift' : 'own',
+        convenienceFee: deliveryCharge,   // ← Already correct
         items: cartItems.map(item => ({
-            productId: item.productId || null, 
+            productId: item.productId || null,
             snackId: item.snackId || null,
             quantity: item.quantity,
             selectedWeight: item.size,
@@ -716,8 +801,7 @@ async function createOrderOnBackend(razorpayOrderId = null) {
             hideLoader();
             blastConfetti();
             setTimeout(() => {
-                alert(`Order #${order.orderId} placed successfully!`);
-                window.location.reload();
+               window.location.href = '/MY ORDERS/myorders.html';
             }, 500);
         } else {
             const err = await res.text();
@@ -734,13 +818,25 @@ document.getElementById('placeOrder')?.addEventListener('click', async () => {
     if (!user || !selectedAddress || cartItems.length === 0) return alert('Complete all fields');
     showLoader();
 
-    const subTotal = cartItems.reduce((s, i) => s + (i.price * i.quantity) + i.addons.reduce((t, a) => t + a.price * a.quantity, 0), 0);
-    const total = subTotal + (subTotal > 500 ? 0 : 40) + Math.round(subTotal * 0.05) - discount;
+    // === CORRECT TOTAL CALCULATION (includes delivery charge) ===
+    // const subTotal = cartItems.reduce((s, i) => s + (i.price * i.quantity) + i.addons.reduce((t, a) => t + a.price * a.quantity, 0), 0);
+    
+    const subTotal = cartItems.reduce((s, i) => {
+    const addonTotal = i.addons.reduce((t, a) => t + a.price * a.quantity, 0);
+    return s + (i.price * i.quantity) + addonTotal; }, 0);
+    
+    const tax = Math.round(subTotal * 0.05);
+    let deliveryCharge = 0;
+    if (selectedAddress?.shippingPincode) {
+        const info = getDeliveryInfo(selectedAddress.shippingPincode);
+        deliveryCharge = info.charge !== null ? info.charge : 0;
+    }
+    const total = subTotal + deliveryCharge + tax - discount;
 
     if (document.getElementById('paymentMethod')?.value === 'online') {
         await loadRazorpayScript();
         hideLoader();
-        await initiateRazorpay(total);
+        await initiateRazorpay(total);   // ← Now passes correct total with delivery charge
     } else {
         await createOrderOnBackend();
     }
@@ -760,7 +856,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('saveAddress')?.addEventListener('click', saveAddress);
 });
-
 
 
 
